@@ -6,7 +6,7 @@ Installs and configures OpenBao as a cluster-ready service on target hosts. It s
 - installation from the official OpenBao package repository
 - installation from a released binary tarball
 - configuration of the runtime paths, TLS settings, API/cluster addresses, and Raft storage
-- optional AWS KMS auto-unseal through the `awskms` seal configuration
+- optional auto-unseal through seal configuration
 
 Requirements
 ------------
@@ -14,7 +14,6 @@ Requirements
 - Ansible on the managed host
 - `systemd` for service management
 - package manager access for repository installs or the ability to download the OpenBao binary distribution
-- when using AWS KMS seal, valid AWS credentials and KMS permissions for the target account
 
 Role Variables
 --------------
