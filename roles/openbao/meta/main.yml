@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+galaxy_info:
+  author: Simon Nussbaum
+  description: Role for installing OpenBao clusters on servers
+  company: Adfinis AG
+
+  license: AGPL-3.0-or-later
+
+  min_ansible_version: "2.14"
+
+  galaxy_tags:
+    - linux
+    - debian
+    - redhat
+    - openbao
+
+collections:
+  - ansible.posix
+
+dependencies: []

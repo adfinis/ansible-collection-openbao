@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# handlers file for OpenBao
+# ------------------------------------------------------------------------
+# Imports the restart and cleanup handlers used after package installation
+# and configuration updates.
+
+- name: Include OpenBao restart cluster handler
+  ansible.builtin.import_tasks: restart_cluster.yml
+  tags: [restart_cluster]
+
+- name: Include OpenBao clean up handler
+  ansible.builtin.import_tasks: clean_up.yml
+  tags: [clean_up]

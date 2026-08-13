@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao installation from binary tarball prerequisites
+# ------------------------------------------------------------------------
+# Installs the required packages for GPG key verification and tarball
+# extraction
+
+- name: >-
+    Make sure required package "gpg" is installed if
+    openbao_binary_package_gpg_key_verification is set
+  when:
+    - openbao_binary_package_gpg_key_verification
+  become: true
+  ansible.builtin.package:
+    name: "{{ openbao_binary_package_gpg_package_name }}"
+    state: present
+    update_cache: true
+
+- name: Make sure required package "tar" is installed
+  become: true
+  ansible.builtin.package:
+    name: "tar"
+    state: present
+    update_cache: true

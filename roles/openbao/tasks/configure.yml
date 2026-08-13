@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao configuration
+# ------------------------------------------------------------------------
+# Render the OpenBao service configuration for the target host.
+# This file creates the required runtime and data directories and writes
+# the HCL and environment files used by the OpenBao service.
+
+- name: Configure OpenBao
+  become: true
+  block:
+    - name: Create OpenBao directory structure
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+        mode: "0750"
+      loop:
+        - "{{ openbao_configuration_config_path }}"
+        - "{{ openbao_configuration_data_storage_raft_path }}"
+        - "{{ openbao_configuration_data_audit_path }}"
+        - "{{ openbao_configuration_data_log_path }}"
+        - "{{ openbao_configuration_tls_path }}"
+    - name: Add OpenBao configuration file
+      ansible.builtin.template:
+        src: "openbao.hcl.j2"
+        dest: "{{ openbao_configuration_config_path }}/{{ openbao_configuration_config_file_name }}"
+        mode: "0640"
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+      notify: restart_cluster
+
+    - name: Add OpenBao environment file
+      ansible.builtin.template:
+        src: "openbao.env.j2"
+        dest: "{{ openbao_configuration_config_path }}/{{ openbao_configuration_environment_file_name }}"
+        mode: "0640"
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+      notify: restart_cluster

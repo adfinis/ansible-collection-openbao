@@ -1,0 +1,115 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# handlers file for OpenBao safe cluster restart
+# ------------------------------------------------------------------------
+# Checks node health and leader state, restarts followers and leader in
+# the correct order, and waits for the cluster to recover before
+# continuing.
+
+- name: Determine whether OpenBao service is already registered with systemd
+  ansible.builtin.command:
+    cmd: systemctl show -p LoadState --value "{{ openbao_configuration_data_systemd_unit_name }}"
+  register: openbao_service_status
+  ignore_errors: true
+  changed_when: false
+  listen: restart_cluster
+
+- name: Set service presence fact
+  ansible.builtin.set_fact:
+    openbao_service_present: "{{ openbao_service_status.rc == 0 }}"
+  changed_when: false
+  listen: restart_cluster
+
+- name: Start OpenBao service on initial installation
+  when: not openbao_service_present
+  ansible.builtin.systemd:
+    name: "{{ openbao_configuration_data_systemd_unit_name }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+  listen: restart_cluster
+
+- name: Skip cluster restart on initial installation
+  when: not openbao_service_present
+  ansible.builtin.debug:
+    msg: "Skipping cluster restart on initial installation"
+  listen: restart_cluster
+
+- name: Check if node is initialized
+  when: openbao_service_present
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}:{{ openbao_configuration_api_port }}/v1/sys/health"
+    method: GET
+    # 200 if initialized, unsealed, and active
+    # 429 if unsealed and standby
+    # 501 if not initialized
+    # 503 if sealed
+    status_code:
+      - 200
+      - 429
+      - 501
+  failed_when: openbao_task_result_initialized.status == 501
+  register: openbao_task_result_initialized
+  listen: restart_cluster
+
+- name: Is leader?
+  when: openbao_service_present
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}:{{ openbao_configuration_api_port }}/v1/sys/leader"
+    method: GET
+    # 200 if initialized, unsealed, and active
+    # 429 if unsealed and standby
+    # 501 if not initialized
+    # 503 if sealed
+    status_code:
+      - 200
+      - 429
+    body_format: json
+  register: openbao_task_result_leader
+  changed_when: false
+  failed_when: >-
+    openbao_task_result_leader.json.leader_address !=
+    'http://' ~ inventory_hostname ~ ':' ~ openbao_configuration_api_port
+  ignore_errors: true
+  listen: restart_cluster
+
+- name: Restart followers
+  when: 
+    - openbao_service_present
+    - openbao_task_result_leader.failed
+  ansible.builtin.systemd:
+    name: "{{ openbao_configuration_data_systemd_unit_name }}"
+    state: restarted
+  listen: restart_cluster
+
+- name: Wait for followers to come back up
+  when: 
+    - openbao_service_present
+    - not openbao_task_result_leader.failed
+  ansible.builtin.uri:
+    url: "http://{{ item }}:{{ openbao_configuration_api_port }}/v1/sys/health"
+    method: GET
+    # 200 if initialized, unsealed, and active
+    # 429 if unsealed and standby
+    # 501 if not initialized
+    # 503 if sealed
+    status_code:
+      - 200
+      - 429
+    body_format: json
+  register: openbao_task_result_followers
+  retries: 6
+  until: openbao_task_result_followers.json.version == openbao_version
+  delay: 10
+  changed_when: false
+  loop: "{{ ansible_play_hosts_all | reject('equalto', inventory_hostname) }}"
+  listen: restart_cluster
+
+- name: Restart leader
+  when: 
+    - openbao_service_present
+    - not openbao_task_result_leader.failed
+  ansible.builtin.systemd:
+    name: "{{ openbao_configuration_data_systemd_unit_name }}"
+    state: restarted
+  listen: restart_cluster

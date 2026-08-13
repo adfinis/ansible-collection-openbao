@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# argument spec file for adfinis.openbao.openbao
+
+argument_specs:
+  main:
+    short_description: Role description.
+    options:
+      openbao_my_variable:
+        type: str
+        description: A simple string argument for demonstration.
+        default: "default_value"

@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao post-installation changes
+# -----------------------------------------------------------------------
+# Detects installed firewall tooling and opens the required API and
+# cluster ports to allow the service to accept inbound traffic.
+
+- name: Allow OpenBao connections with iptables if firewalld is not installed
+  when: "'firewalld' not in ansible_facts.packages and 'iptables' in ansible_facts.packages"
+  become: true
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_ports:
+      - "{{ openbao_configuration_api_port }}"
+      - "{{ openbao_configuration_cluster_port }}"
+    jump: ACCEPT
+
+- name: Allow OpenBao connections with firewalld
+  when: "'firewalld' in ansible_facts.packages"
+  become: true
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop:
+    - "{{ openbao_configuration_api_port }}/tcp"
+    - "{{ openbao_configuration_cluster_port }}/tcp"

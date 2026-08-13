@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao repository installation
+# ------------------------------------------------------------------------
+# Copies the repository configuration and installs the OpenBao package
+# with the required package manager settings.
+
+- name: Install OpenBao repository
+  become: true
+  ansible.builtin.copy:
+    src: "{{ openbao_repository_configuration_file_src }}"
+    dest: "{{ openbao_repository_configuration_file_dest }}/{{ openbao_repository_configuration_file_src | basename }}"
+    mode: "0755"
+- name: Install OpenBao from repository
+  become: true
+  ansible.builtin.package:
+    name: "{{ openbao_repository_package_name }}"
+    state: present
+    update_cache: true
+    allow_downgrade: true
+  notify: restart_cluster
