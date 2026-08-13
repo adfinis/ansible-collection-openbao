@@ -1,7 +1,7 @@
-Role Name
-=========
+Role: openbao
+===============
 
-This role installs and configures OpenBao as a service and prepares a cluster-ready configuration for one or more hosts. It supports:
+Installs and configures OpenBao as a cluster-ready service on target hosts. It supports:
 
 - installation from the official OpenBao package repository
 - installation from a released binary tarball
@@ -21,7 +21,7 @@ Role Variables
 
 | Variable | Default | Description |
 | -------- | ------- | ----------- |
-| `openbao_version` | `"2.6.1"` | OpenBao version to install or match. |
+| `openbao_version` | `"2.6.0"` | OpenBao version to install or match. |
 | `openbao_user_creation` | `false` | Create the operating system user used to run OpenBao. |
 | `openbao_user_name` | `"openbao"` | Local OpenBao system user. |
 | `openbao_user_group_name` | `"{{ openbao_user_name }}"` | Local OpenBao system group. |
@@ -39,7 +39,7 @@ Role Variables
 | `openbao_binary_package_gpg_package_name` | `"gpg"` | Package required for GPG verification. |
 | `openbao_binary_package_gpg_public_key_file` | `"files/openbao-gpg-pub-20240618.asc"` | Local public key used to verify the archive. |
 | `openbao_binary_package_download_gpg_key_url` | `"{{ openbao_binary_package_download_url }}.gpgsig"` | URL of the detached GPG signature file. |
-| `openbao_configuration_base_path` | `/etc/openbao or /opt/openbao` | Root directory for runtime and configuration. |
+| `openbao_configuration_base_path` | OS-dependent (defaults to `/etc/openbao` for package installs, `/opt/openbao` for binary installs) | Root directory for runtime and configuration. |
 | `openbao_configuration_data_path` | `/opt/openbao` | Base path used for cluster data and systemd configuration. |
 | `openbao_configuration_runtime_path` | `"{{ openbao_configuration_base_path }}/bin"` | Directory containing the OpenBao executable. |
 | `openbao_configuration_config_path` | `"{{ openbao_configuration_base_path }}"` | Directory containing the service configuration and environment files. |
@@ -58,14 +58,22 @@ Role Variables
 | `openbao_configuration_api_addr` | `"http://{{ inventory_hostname }}:{{ openbao_configuration_api_port }}"` | External URL advertised for the API endpoint. |
 | `openbao_configuration_cluster_port` | `8201` | OpenBao cluster listener port. |
 | `openbao_configuration_cluster_addr` | `"http://{{ inventory_hostname }}:{{ openbao_configuration_cluster_port }}"` | URL advertised for clustering. |
-| `openbao_seal_awskms_configuration` | `region: "us-east-1"`, `kms_key_id: ""`, etc. | AWS KMS seal configuration map passed into the `seal "awskms"` block. |
+| `openbao_configuration_seal_*` | `not set` | Configuration map passed into the `seal` block of given seal type. |
 
-AWS KMS Seal configuration
--------------------------
+Seal configuration
+------------------
 
-The role exposes `openbao_seal_awskms_configuration` as a dictionary that can be rendered into the OpenBao seal stanza. The default structure is:
+The role exposes several `openbao_configuration_seal_*` dictionaries. Only define the backend you want to use; keep other dicts empty. Example structures matching the role defaults:
 
-    openbao_seal_awskms_configuration:
+Static seal (test values — do not use in production):
+
+    openbao_configuration_seal_static:
+      current_key_id: "test-1"
+      current_key: "qU1Qtq04971uTpAJ6xiR6MdDJzUYcDJ2T5gx7Ofrrzw="
+
+Another example with the options for `awskms` seal backend:
+
+    openbao_configuration_seal_awskms:
       region: "us-east-1"
       access_key: ""
       secret_key: ""
@@ -78,7 +86,7 @@ The role exposes `openbao_seal_awskms_configuration` as a dictionary that can be
       disable_renewal: false
       lease_path: ""
 
-These keys match the options documented by OpenBao for the `awskms` seal backend.
+Only enable one seal backend in production. See the role `defaults/main.yml` for the current default structures.
 
 Dependencies
 ------------
@@ -93,7 +101,7 @@ Example Playbook
       vars:
         openbao_binary_installation: false
         openbao_user_creation: true
-        openbao_seal_awskms_configuration:
+        openbao_configuration_seal_awskms:
           region: "eu-central-1"
           kms_key_id: "arn:aws:kms:eu-central-1:123456789012:key/abcd1234-ef56-7890-abcd-ef1234567890"
           access_key: "{{ vault_aws_access_key }}"
@@ -107,7 +115,7 @@ This example installs OpenBao from the repository, creates the service user, and
 License
 -------
 
-[AGPL-3.0-or-later](https://github.com/adfinis/ansible-collection-openbao/blob/main/LICENSE)
+[AGPL-3.0-or-later](../../LICENSE)
 
 Author Information
 ------------------
