@@ -6,7 +6,9 @@
 # cluster ports to allow the service to accept inbound traffic.
 
 - name: Allow OpenBao connections with iptables if firewalld is not installed
-  when: "'firewalld' not in ansible_facts.packages and 'iptables' in ansible_facts.packages"
+  when:
+    - "'firewalld' not in ansible_facts.packages"
+    - "'iptables' in ansible_facts.packages"
   become: true
   ansible.builtin.iptables:
     chain: INPUT

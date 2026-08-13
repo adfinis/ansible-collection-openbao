@@ -10,8 +10,10 @@
 # service.
 
 - name: Check currently installed OpenBao version
-  ansible.builtin.command: >-
-    {{ openbao_configuration_runtime_path }}/bao -version
+  ansible.builtin.command:
+    argv:
+      - "{{ openbao_configuration_runtime_path ~ '/bao' }}"
+      - "-version"
   ignore_errors: true
   changed_when: false
   register: openbao_task_result_version_check
@@ -19,17 +21,29 @@
 - name: Determine whether OpenBao needs installation
   ansible.builtin.set_fact:
     openbao_installed_version: >-
-      {{ openbao_task_result_version_check.stdout | regex_search('v(\d+\.\d+\.\d+)') }}
+      {{ openbao_task_result_version_check.stdout
+      | regex_search('v(\d+\.\d+\.\d+)') }}
+
+- name: Determine whether OpenBao needs installation
+  ansible.builtin.set_fact:
     openbao_needs_install: >-
       {{
         openbao_task_result_version_check.rc != 0
-        or openbao_installed_version != openbao_binary_package_version
+        or openbao_installed_version != 'v' ~ openbao_version
       }}
   when: openbao_task_result_version_check is defined
 
+- name: Create OpenBao directory
+  when: openbao_needs_install
+  ansible.builtin.file:
+    path: "{{ openbao_configuration_runtime_path }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ openbao_user_name }}"
+    group: "{{ openbao_user_group_name }}"
+
 - name: Install OpenBao from URL
-  when:
-    - openbao_needs_install
+  when: openbao_needs_install
   become: true
   become_user: "{{ openbao_user_name }}"
   block:
@@ -37,14 +51,6 @@
       ansible.builtin.tempfile:
         state: directory
       register: openbao_task_result_staging_dir
-      notify: clean_up
-    - name: Create OpenBao directory
-      ansible.builtin.file:
-        path: "{{ openbao_configuration_runtime_path }}"
-        state: directory
-        mode: "0750"
-        owner: "{{ openbao_user_name }}"
-        group: "{{ openbao_user_group_name }}"
     - name: Download OpenBao package
       ansible.builtin.get_url:
         url: "{{ openbao_binary_package_download_url }}"
@@ -59,46 +65,70 @@
         - name: Download OpenBao package GPG key
           ansible.builtin.get_url:
             url: "{{ openbao_binary_package_download_gpg_key_url }}"
-            dest: "{{ openbao_task_result_staging_dir.path }}/{{ openbao_binary_package_download_gpg_key_url | basename }}"
+            dest: >-
+              {{ openbao_task_result_staging_dir.path ~
+              '/' ~ openbao_binary_package_download_gpg_key_url | basename }}
             mode: "0750"
         - name: Copy OpenBao public GPG key to remote host
           ansible.builtin.copy:
             src: "{{ openbao_binary_package_gpg_public_key_file }}"
-            dest: "{{ openbao_task_result_staging_dir.path }}/{{ openbao_binary_package_gpg_public_key_file | basename }}"
+            dest: >-
+              {{ openbao_task_result_staging_dir.path ~
+              '/' ~ openbao_binary_package_gpg_public_key_file | basename }}
             mode: "0750"
         - name: Import OpenBao public GPG key
-          ansible.builtin.command: >-
-            gpg
-              --no-tty
-              --logger-fd 1
-              --homedir "{{ openbao_task_result_staging_dir.path }}"
-              --no-autostart
-              --import
-              "{{ openbao_task_result_staging_dir.path }}/{{ openbao_binary_package_gpg_public_key_file | basename }}"
+          ansible.builtin.command:
+            argv:
+              - "gpg"
+              - "--no-tty"
+              - "--logger-fd"
+              - "1"
+              - "--homedir"
+              - "{{ openbao_task_result_staging_dir.path }}"
+              - "--no-autostart"
+              - "--import"
+              - >-
+                  {{ openbao_task_result_staging_dir.path ~
+                  '/' ~ openbao_binary_package_gpg_public_key_file | basename }}
           register: openbao_task_result_public_gpg_key_import
           failed_when: openbao_task_result_public_gpg_key_import.rc != 0
           changed_when: false
         - name: Verify OpenBao package GPG key
-          ansible.builtin.command: >-
-            gpg
-              --no-tty
-              --logger-fd 1
-              --homedir "{{ openbao_task_result_staging_dir.path }}"
-              --no-autostart
-              --verify
-              "{{ openbao_task_result_staging_dir.path }}/{{ openbao_binary_package_download_gpg_key_url | basename }}"
-              "{{ openbao_task_result_staging_dir.path }}/{{ openbao_binary_package_download_url | basename }}"
+          ansible.builtin.command:
+            argv:
+              - "gpg"
+              - "--no-tty"
+              - "--logger-fd"
+              - "1"
+              - "--homedir"
+              - "{{ openbao_task_result_staging_dir.path }}"
+              - "--no-autostart"
+              - "--verify"
+              - >-
+                {{ openbao_task_result_staging_dir.path ~
+                '/' ~ openbao_binary_package_download_gpg_key_url | basename }}
+              - >-
+                {{ openbao_task_result_staging_dir.path ~
+                '/' ~ openbao_binary_package_download_url | basename }}
           register: openbao_task_result_gpg_check
           failed_when: openbao_task_result_gpg_check.rc != 0
           changed_when: false
 
     - name: Extract OpenBao package
       ansible.builtin.unarchive:
-        src: "{{ openbao_task_result_staging_dir.path }}/{{ openbao_binary_package_download_url | basename }}"
+        src: >-
+          {{ openbao_task_result_staging_dir.path ~
+          '/' ~ openbao_binary_package_download_url | basename }}
         dest: "{{ openbao_configuration_runtime_path }}"
         remote_src: true
         mode: "0755"
       notify: restart_cluster
+  always:
+    - name: Clean up temporary staging directory
+      when: openbao_task_result_staging_dir.path is defined
+      ansible.builtin.file:
+        path: "{{ openbao_task_result_staging_dir.path }}"
+        state: absent
 
 - name: Add systemd service file for OpenBao
   become: true
@@ -113,8 +143,8 @@
       ansible.builtin.template:
         src: "openbao.service.j2"
         dest: >-
-          {{ openbao_configuration_data_systemd_path }}
-          /{{ openbao_configuration_data_systemd_unit_name }}
+          {{ openbao_configuration_data_systemd_path ~
+          '/' ~ openbao_configuration_data_systemd_unit_name }}
         mode: "0644"
       notify: restart_cluster
 
@@ -122,7 +152,7 @@
   become: true
   ansible.builtin.systemd:
     name: >-
-      {{ openbao_configuration_data_systemd_path }}
-      /{{ openbao_configuration_data_systemd_unit_name }}
+      {{ openbao_configuration_data_systemd_path ~
+      '/' ~ openbao_configuration_data_systemd_unit_name }}
     enabled: true
     daemon_reload: true

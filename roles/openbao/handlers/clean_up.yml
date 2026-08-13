@@ -2,11 +2,3 @@
 ---
 # handlers file for OpenBao after installation cleanup
 # ------------------------------------------------------------------------
-# Removes the staging directory created while downloading and verifying
-# the OpenBao binary archive.
-
-- name: Remove temporary staging directory
-  ansible.builtin.file:
-    path: "{{ openbao_task_result_staging_dir.path }}"
-    state: absent
-  listen: clean_up

@@ -9,7 +9,9 @@
   become: true
   ansible.builtin.copy:
     src: "{{ openbao_repository_configuration_file_src }}"
-    dest: "{{ openbao_repository_configuration_file_dest }}/{{ openbao_repository_configuration_file_src | basename }}"
+    dest: >-
+      {{ openbao_repository_configuration_file_dest ~
+      '/' ~ openbao_repository_configuration_file_src | basename }}
     mode: "0755"
 - name: Install OpenBao from repository
   become: true

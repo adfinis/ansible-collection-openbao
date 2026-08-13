@@ -25,7 +25,9 @@
     - name: Add OpenBao configuration file
       ansible.builtin.template:
         src: "openbao.hcl.j2"
-        dest: "{{ openbao_configuration_config_path }}/{{ openbao_configuration_config_file_name }}"
+        dest: >-
+          {{ openbao_configuration_config_path ~
+          '/' ~ openbao_configuration_config_file_name }}
         mode: "0640"
         owner: "{{ openbao_user_name }}"
         group: "{{ openbao_user_group_name }}"
@@ -34,7 +36,9 @@
     - name: Add OpenBao environment file
       ansible.builtin.template:
         src: "openbao.env.j2"
-        dest: "{{ openbao_configuration_config_path }}/{{ openbao_configuration_environment_file_name }}"
+        dest: >-
+          {{ openbao_configuration_config_path ~
+          '/' ~ openbao_configuration_environment_file_name }}
         mode: "0640"
         owner: "{{ openbao_user_name }}"
         group: "{{ openbao_user_group_name }}"

@@ -10,12 +10,19 @@
   ansible.builtin.package_facts:
     manager: "auto"
 
+- name: Check if OpenBao user exists
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ openbao_user_name }}"
+    fail_key: false
+
 - name: Create OpenBao user
-  when: openbao_user_creation
+  when:
+    - openbao_user_creation
+    - openbao_user_name not in ansible_facts.getent_passwd
   become: true
   ansible.builtin.user:
     comment: "Local user for OpenBao"
     name: "{{ openbao_user_name }}"
     home: "{{ openbao_user_home }}"
     create_home: "{{ openbao_user_home_creation }}"
-    force: true

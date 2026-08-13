@@ -13,50 +13,73 @@ openbao_user_home_creation: false
 openbao_repository_configuration_file_debian: "files/openbao.sources"
 openbao_repository_configuration_file_redhat: "files/openbao.repo"
 openbao_repository_configuration_file_src: >-
-  {{ openbao_repository_configuration_file_debian if ansible_facts.os_family == 'Debian'
-  else openbao_repository_configuration_file_redhat }}
+  {{ openbao_repository_configuration_file_debian
+  if ansible_facts.os_family == 'Debian'
+  else openbao_repository_configuration_file_redhat
+  }}
 openbao_repository_configuration_file_dest: >-
-  {{ '/etc/apt/sources.list.d/' if ansible_facts.os_family == 'Debian' else '/etc/yum.repos.d/'
+  {{ '/etc/apt/sources.list.d/'
+  if ansible_facts.os_family == 'Debian'
+  else '/etc/yum.repos.d/'
   }}
 openbao_repository_package_name: >-
-  {{ (ansible_facts.os_family == 'Debian') | ternary('openbao=' ~ openbao_version,
-  'openbao-' ~ openbao_version ~ '-1') }}
+  {{ (ansible_facts.os_family == 'Debian')
+  | ternary('openbao=' ~ openbao_version,
+  'openbao-' ~ openbao_version ~ '-1')
+  }}
+
 openbao_binary_installation: false
-openbao_binary_package_download_directory_url: "https://github.com/openbao/openbao/releases/download"
+openbao_binary_package_download_directory_url: >-
+  https://github.com/openbao/openbao/releases/download
 openbao_binary_package_download_url: >-
-  {{ openbao_binary_package_download_directory_url }}/v{{ openbao_version }}/openbao_{{ openbao_version }}_linux_amd64.tar.gz
+  {{ openbao_binary_package_download_directory_url ~ '/v' ~ openbao_version
+  ~ '/openbao_' ~ openbao_version ~ '_linux_amd64.tar.gz'
+  }}
 openbao_binary_package_gpg_key_verification: true
 openbao_binary_package_gpg_package_name: "gpg"
-openbao_binary_package_gpg_public_key_file: "files/openbao-gpg-pub-20240618.asc"
-openbao_binary_package_download_gpg_key_url: "{{ openbao_binary_package_download_url }}.gpgsig"
+openbao_binary_package_gpg_public_key_file: >-
+  files/openbao-gpg-pub-20240618.asc
+openbao_binary_package_download_gpg_key_url: >-
+  {{ openbao_binary_package_download_url }}.gpgsig
 
-openbao_configuration_base_path: "{{ '/etc/openbao' if openbao_binary_installation == false else '/opt/openbao' }}"
+openbao_configuration_base_path: >-
+  {{ '/etc/openbao'
+  if openbao_binary_installation == false
+  else '/opt/openbao'
+  }}
 openbao_configuration_data_path: "/opt/openbao"
 openbao_configuration_runtime_path: "{{ openbao_configuration_base_path }}/bin"
 openbao_configuration_config_path: "{{ openbao_configuration_base_path }}"
 openbao_configuration_environment_file_name: "openbao.env"
 openbao_configuration_config_file_name: "openbao.hcl"
 openbao_configuration_tls_path: "{{ openbao_configuration_base_path }}/tls"
-openbao_configuration_tls_cert_file: "{{ openbao_configuration_tls_path }}/server.crt"
-openbao_configuration_tls_key_file: "{{ openbao_configuration_tls_path }}/server.key"
-openbao_configuration_tls_ca_file: "{{ openbao_configuration_tls_path }}/ca.crt"
-openbao_configuration_data_storage_raft_path: "{{ openbao_configuration_data_path }}/data"
-openbao_configuration_data_audit_path: "{{ openbao_configuration_data_path }}/audit"
-openbao_configuration_data_systemd_path: "{{ openbao_configuration_data_path }}/.config/systemd/user"
+openbao_configuration_tls_cert_file: >-
+  {{ openbao_configuration_tls_path }}/server.crt
+openbao_configuration_tls_key_file: >-
+  {{ openbao_configuration_tls_path }}/server.key
+openbao_configuration_tls_ca_file: >-
+  {{ openbao_configuration_tls_path }}/ca.crt
+openbao_configuration_data_storage_raft_path: >-
+  {{ openbao_configuration_data_path }}/data
+openbao_configuration_data_audit_path: >-
+  {{ openbao_configuration_data_path }}/audit
+openbao_configuration_data_systemd_path: >-
+  {{ openbao_configuration_data_path }}/systemd
 openbao_configuration_data_systemd_unit_name: "openbao.service"
-openbao_configuration_data_log_path: "{{ openbao_configuration_data_path }}/log"
+openbao_configuration_data_log_path: >-
+  {{ openbao_configuration_data_path }}/log
 openbao_configuration_api_port: 8200
-openbao_configuration_api_addr: "http://{{ inventory_hostname }}:{{ openbao_configuration_api_port }}"
+openbao_configuration_api_addr: >-
+  http://{{ inventory_hostname ~ ':' ~ openbao_configuration_api_port }}
 openbao_configuration_cluster_port: 8201
-openbao_configuration_cluster_addr: "http://{{ inventory_hostname }}:{{ openbao_configuration_cluster_port }}"
+openbao_configuration_cluster_addr: >-
+  http://{{ inventory_hostname ~ ':' ~ openbao_configuration_cluster_port }}
 
 # Optional seal configuration blocks. Define only the backend you want to use, and
 # keep each dict empty unless it is actively configured.
 openbao_configuration_seal_static:
   # current_key_id: ""
   # current_key: ""
-  current_key_id: "test-1"
-  current_key: "qU1Qtq04971uTpAJ6xiR6MdDJzUYcDJ2T5gx7Ofrrzw="
 
 openbao_configuration_seal_awskms:
   # region: "us-east-1"
