@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+collections:
+  - name: ansible.posix
+    version: 2.2.2
