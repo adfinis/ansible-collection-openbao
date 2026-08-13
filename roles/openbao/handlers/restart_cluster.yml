@@ -7,8 +7,8 @@
 # continuing.
 
 - name: Determine whether OpenBao service is already registered with systemd
-  ansible.builtin.command:
-    cmd: systemctl show -p LoadState --value "{{ openbao_configuration_data_systemd_unit_name }}"
+  ansible.builtin.systemd:
+    name: "{{ openbao_configuration_data_systemd_unit_name }}"
   register: openbao_service_status
   ignore_errors: true
   changed_when: false
@@ -16,17 +16,8 @@
 
 - name: Set service presence fact
   ansible.builtin.set_fact:
-    openbao_service_present: "{{ openbao_service_status.rc == 0 }}"
+    openbao_service_present: "{{ openbao_service_status.status.ActiveState == 'active' }}"
   changed_when: false
-  listen: restart_cluster
-
-- name: Start OpenBao service on initial installation
-  when: not openbao_service_present
-  ansible.builtin.systemd:
-    name: "{{ openbao_configuration_data_systemd_unit_name }}"
-    state: started
-    enabled: true
-    daemon_reload: true
   listen: restart_cluster
 
 - name: Skip cluster restart on initial installation
@@ -74,7 +65,7 @@
   listen: restart_cluster
 
 - name: Restart followers
-  when: 
+  when:
     - openbao_service_present
     - openbao_task_result_leader.failed
   ansible.builtin.systemd:
@@ -83,7 +74,7 @@
   listen: restart_cluster
 
 - name: Wait for followers to come back up
-  when: 
+  when:
     - openbao_service_present
     - not openbao_task_result_leader.failed
   ansible.builtin.uri:
@@ -106,10 +97,19 @@
   listen: restart_cluster
 
 - name: Restart leader
-  when: 
+  when:
     - openbao_service_present
     - not openbao_task_result_leader.failed
   ansible.builtin.systemd:
     name: "{{ openbao_configuration_data_systemd_unit_name }}"
     state: restarted
+  listen: restart_cluster
+
+- name: Start OpenBao service on initial installation
+  when: not openbao_service_present
+  ansible.builtin.systemd:
+    name: "{{ openbao_configuration_data_systemd_unit_name }}"
+    state: started
+    enabled: true
+    daemon_reload: true
   listen: restart_cluster

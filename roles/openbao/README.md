@@ -119,4 +119,4 @@ License
 Author Information
 ------------------
 
-* Simon Nussbaum <simon.nussbaum@adfinis.com>
+- Simon Nussbaum <simon.nussbaum@adfinis.com>

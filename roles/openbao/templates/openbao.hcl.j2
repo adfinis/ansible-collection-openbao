@@ -1,6 +1,9 @@
 # {{ ansible_managed }}
 
 ui = true
+
+log_file = "{{ openbao_configuration_data_log_path }}/openbao.log"
+
 listener "tcp" {
   address = "0.0.0.0:8200"
   tls_disable = "true"
@@ -8,10 +11,12 @@ listener "tcp" {
     unauthenticated_metrics_access = "true"
   }
 }
+
 telemetry {
   disable_hostname = true
   prometheus_retention_time = "12h"
 }
+
 cluster_addr = "{{ openbao_configuration_cluster_addr }}"
 api_addr     = "{{ openbao_configuration_api_addr }}"
 
@@ -26,6 +31,13 @@ storage "raft" {
   }
 {% endif %}
 {% endfor %}
+}
+
+audit "file" "audit" {
+  description = "Write audit information to {{ openbao_configuration_data_audit_path }}/audit.log"
+  options {
+    file_path = "{{ openbao_configuration_data_audit_path }}/audit.log"
+  }
 }
 
 {% set seal_configs = {
