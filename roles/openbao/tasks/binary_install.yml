@@ -141,7 +141,7 @@
         mode: "0755"
     - name: Add systemd configuration file for OpenBao
       ansible.builtin.template:
-        src: "openbao.service.j2"
+        src: "{{ openbao_configuration_data_systemd_template_file_path }}"
         dest: >-
           {{ openbao_configuration_data_systemd_path ~
           '/' ~ openbao_configuration_data_systemd_unit_name }}

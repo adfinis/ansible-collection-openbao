@@ -24,7 +24,7 @@
         - "{{ openbao_configuration_tls_path }}"
     - name: Add OpenBao configuration file
       ansible.builtin.template:
-        src: "openbao.hcl.j2"
+        src: "{{ openbao_configuration_config_template_file_path }}"
         dest: >-
           {{ openbao_configuration_config_path ~
           '/' ~ openbao_configuration_config_file_name }}
@@ -35,7 +35,7 @@
 
     - name: Add OpenBao environment file
       ansible.builtin.template:
-        src: "openbao.env.j2"
+        src: "{{ openbao_configuration_environment_template_file_path }}"
         dest: >-
           {{ openbao_configuration_config_path ~
           '/' ~ openbao_configuration_environment_file_name }}
