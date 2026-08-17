@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  roles:
+    - role: openbao
+      vars:
+        openbao_binary_installation: true
+        openbao_binary_package_gpg_key_verification: false
+        openbao_binary_package_download_url: "file:///tmp/openbao_test.tar.gz"

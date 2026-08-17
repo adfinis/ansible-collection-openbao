@@ -13,6 +13,7 @@
       {{ openbao_repository_configuration_file_dest ~
       '/' ~ openbao_repository_configuration_file_src | basename }}
     mode: "0755"
+
 - name: Install OpenBao from repository
   become: true
   ansible.builtin.package:
@@ -21,9 +22,9 @@
     update_cache: true
     allow_downgrade: true
   notify: restart_cluster
+
 - name: Ensure OpenBao service is enabled
   become: true
   ansible.builtin.systemd:
     name: "{{ openbao_configuration_data_systemd_unit_name }}"
     enabled: true
-  notify: restart_cluster

@@ -1,0 +1,28 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    - name: Ensure required packages for tests are installed
+      ansible.builtin.package:
+        name: "gpg tar"
+        state: present
+      become: true
+    - name: Create fake OpenBao staging directory with a test binary
+      become: true
+      file:
+        path: /tmp/openbao_test/bin
+        state: directory
+        mode: '0755'
+    - name: Write fake openbao executable
+      become: true
+      copy:
+        dest: /tmp/openbao_test/bin/openbao
+        content: |
+          #!/bin/sh
+          echo "openbao test binary"
+        mode: '0755'
+    - name: Create tarball of fake OpenBao package
+      become: true
+      command: tar -C /tmp/openbao_test -czf /tmp/openbao_test.tar.gz .
+      args:
+        creates: /tmp/openbao_test.tar.gz

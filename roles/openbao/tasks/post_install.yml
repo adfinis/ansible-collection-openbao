@@ -29,3 +29,10 @@
   loop:
     - "{{ openbao_configuration_api_port }}/tcp"
     - "{{ openbao_configuration_cluster_port }}/tcp"
+
+- name: Start OpenBao service
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ openbao_configuration_data_systemd_unit_name }}"
+    state: started
+  notify: restart_cluster

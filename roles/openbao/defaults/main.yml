@@ -2,7 +2,7 @@
 ---
 # defaults file for openbao
 
-openbao_version: "2.6.0"
+openbao_version: "2.6.1"
 
 openbao_user_creation: false
 openbao_user_name: "openbao"
@@ -29,12 +29,19 @@ openbao_repository_package_name: >-
   }}
 
 openbao_binary_installation: false
+openbao_binary_architecture: >-
+  {{ 'amd64'
+  if ansible_facts.architecture == 'x86_64'
+  else ansible_facts.architecture
+  }}
+openbao_binary_package_name: >-
+  {{ 'openbao_' ~ openbao_version ~ '_linux_'
+  ~ openbao_binary_architecture ~ '.tar.gz' }}
 openbao_binary_package_download_directory_url: >-
   https://github.com/openbao/openbao/releases/download
 openbao_binary_package_download_url: >-
   {{ openbao_binary_package_download_directory_url ~ '/v' ~ openbao_version
-  ~ '/openbao_' ~ openbao_version ~ '_linux_amd64.tar.gz'
-  }}
+  ~ '/' ~ openbao_binary_package_name }}
 openbao_binary_package_gpg_key_verification: true
 openbao_binary_package_gpg_package_name: "gpg"
 openbao_binary_package_gpg_public_key_file: >-

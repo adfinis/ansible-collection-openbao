@@ -10,13 +10,11 @@
   ansible.builtin.package_facts:
     manager: "auto"
 
-- name: Check if OpenBao user exists
+- name: Fetch existing system users
   ansible.builtin.getent:
     database: passwd
-    key: "{{ openbao_user_name }}"
-    fail_key: false
 
-- name: Create OpenBao user
+- name: Create OpenBao user if it does not exist and user creation is enabled
   when:
     - openbao_user_creation
     - openbao_user_name not in ansible_facts.getent_passwd

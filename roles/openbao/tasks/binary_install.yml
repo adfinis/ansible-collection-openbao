@@ -18,7 +18,7 @@
   changed_when: false
   register: openbao_task_result_version_check
 
-- name: Determine whether OpenBao needs installation
+- name: Determine installed version of OpenBao
   ansible.builtin.set_fact:
     openbao_installed_version: >-
       {{ openbao_task_result_version_check.stdout
