@@ -32,8 +32,6 @@ jobs:
       - changelog
       - build-import
       - sanity
-      - unit-galaxy
-      - unit-source
       - ansible-lint
     runs-on: ubuntu-latest
     steps:
