@@ -14,7 +14,7 @@
     argv:
       - "{{ openbao_configuration_runtime_path ~ '/bao' }}"
       - "-version"
-  ignore_errors: true
+  failed_when: false
   changed_when: false
   register: openbao_task_result_version_check
 
