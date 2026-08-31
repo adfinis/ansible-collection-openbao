@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# vars file for openbao
+
+openbao_repository_name: "openbao"
+openbao_repository_description: "OpenBao community repository"
+openbao_repository_url: "https://pkgs.openbao.org/rpm/$basearch"
+openbao_repository_package_name: "{{ 'openbao-' ~ openbao_version ~ '-1' }}"
+openbao_repository_repo_gpgcheck: false
+openbao_repository_gpgcheck: true
+openbao_repository_enabled: true
+openbao_repository_gpgkey: "https://openbao.org/assets/openbao-gpg-pub-20240618.asc"
+openbao_repository_sslverify: true
+openbao_repository_sslcacert: "/etc/pki/tls/certs/ca-bundle.crt"
+openbao_repository_metadata_expire: 300

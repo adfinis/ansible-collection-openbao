@@ -12,22 +12,6 @@ openbao_user_home_creation: false
 
 openbao_repository_configuration_file_debian: "files/openbao.sources"
 openbao_repository_configuration_file_redhat: "files/openbao.repo"
-openbao_repository_configuration_file_src: >-
-  {{ openbao_repository_configuration_file_debian
-  if ansible_facts.os_family == 'Debian'
-  else openbao_repository_configuration_file_redhat
-  }}
-openbao_repository_configuration_file_dest: >-
-  {{ '/etc/apt/sources.list.d/'
-  if ansible_facts.os_family == 'Debian'
-  else '/etc/yum.repos.d/'
-  }}
-openbao_repository_package_name: >-
-  {{ (ansible_facts.os_family == 'Debian')
-  | ternary('openbao=' ~ openbao_version,
-  'openbao-' ~ openbao_version ~ '-1')
-  }}
-
 openbao_binary_installation: false
 openbao_binary_architecture: >-
   {{ 'amd64'

@@ -25,7 +25,7 @@
   listen: restart_cluster
 
 - name: Restart followers
-  when: openbao_task_result_initialized.status == 429
+  when: openbao_task_result_initialized.status != 200
   ansible.builtin.systemd:
     name: "{{ openbao_configuration_data_systemd_unit_name }}"
     state: restarted
@@ -67,4 +67,5 @@
   ansible.builtin.systemd:
     name: "{{ openbao_configuration_data_systemd_unit_name }}"
     state: restarted
+    enabled: true
   listen: restart_cluster
