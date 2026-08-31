@@ -10,8 +10,6 @@ openbao_user_group_name: "{{ openbao_user_name }}"
 openbao_user_home: "{{ openbao_configuration_base_path }}"
 openbao_user_home_creation: false
 
-openbao_repository_configuration_file_debian: "files/openbao.sources"
-openbao_repository_configuration_file_redhat: "files/openbao.repo"
 openbao_binary_installation: false
 openbao_binary_architecture: >-
   {{ 'amd64'
