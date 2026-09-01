@@ -27,7 +27,7 @@ edit_on_github:
 extra_links:
   - description: Report an issue
     # TO-DO: Update this if your collection lives in a different GitHub organization.
-    url: https://github.com/ansible-collections/adfinis.openbao/issues/new/choose
+    url: https://github.com/adfinis/ansible-collection-openbao/issues/new/choose
 
 # Specify communication channels for your collection. We suggest to not specify more
 # than one place for communication per communication tool to avoid confusion.
