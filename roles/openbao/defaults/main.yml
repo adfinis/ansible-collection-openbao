@@ -26,8 +26,8 @@ openbao_binary_package_download_url: >-
   ~ '/' ~ openbao_binary_package_name }}
 openbao_binary_package_gpg_key_verification: true
 openbao_binary_package_gpg_package_name: "gpg"
-openbao_binary_package_gpg_public_key_file: >-
-  files/openbao-gpg-pub-20240618.asc
+openbao_binary_package_gpg_public_key_url: >-
+  https://openbao.org/assets/openbao-gpg-pub-20240618.asc
 openbao_binary_package_download_gpg_key_url: >-
   {{ openbao_binary_package_download_url }}.gpgsig
 

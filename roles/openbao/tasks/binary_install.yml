@@ -69,12 +69,12 @@
               {{ openbao_task_result_staging_dir.path ~
               '/' ~ openbao_binary_package_download_gpg_key_url | basename }}
             mode: "0750"
-        - name: Copy OpenBao public GPG key to remote host
-          ansible.builtin.copy:
-            src: "{{ openbao_binary_package_gpg_public_key_file }}"
+        - name: Download OpenBao public GPG key to remote host
+          ansible.builtin.get_url:
+            url: "{{ openbao_binary_package_gpg_public_key_url }}"
             dest: >-
               {{ openbao_task_result_staging_dir.path ~
-              '/' ~ openbao_binary_package_gpg_public_key_file | basename }}
+              '/' ~ openbao_binary_package_gpg_public_key_url | basename }}
             mode: "0750"
         - name: Import OpenBao public GPG key
           ansible.builtin.command:
