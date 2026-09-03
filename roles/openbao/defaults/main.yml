@@ -10,6 +10,8 @@ openbao_user_group_name: "{{ openbao_user_name }}"
 openbao_user_home: "{{ openbao_configuration_base_path }}"
 openbao_user_home_creation: false
 
+openbao_service_disabled: false
+
 openbao_binary_installation: false
 openbao_binary_architecture: >-
   {{ 'amd64'

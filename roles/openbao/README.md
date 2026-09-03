@@ -26,6 +26,7 @@ Role Variables
 | `openbao_user_group_name` | `"{{ openbao_user_name }}"` | Local OpenBao system group. |
 | `openbao_user_home` | `"{{ openbao_configuration_base_path }}"` | User home directory. |
 | `openbao_user_home_creation` | `false` | Create the user home directory. |
+| `openbao_service_disabled` | `false` | Do not enable and start OpenBao service |
 | `openbao_binary_installation` | `false` | Use the binary installation flow instead of the package repository flow. |
 | `openbao_binary_architecture` | Architecture-dependent | CPU architecture for binary selection (amd64, arm64, etc.). |
 | `openbao_binary_package_name` | OS-dependent | Binary package filename (e.g., `openbao_2.6.1_linux_amd64.tar.gz`). |

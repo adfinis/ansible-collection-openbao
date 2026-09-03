@@ -46,6 +46,12 @@ argument_specs:
         description: Create the user home directory.
         default: false
 
+      # Service Management
+      openbao_service_disabled:
+        type: bool
+        description: Disable the OpenBao service.
+        default: false
+
       # Binary Installation Options
       openbao_binary_architecture:
         type: str

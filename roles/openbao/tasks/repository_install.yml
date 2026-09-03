@@ -17,4 +17,5 @@
   become: true
   ansible.builtin.systemd:
     name: "{{ openbao_configuration_data_systemd_unit_name }}"
-    enabled: true
+    enabled: "{{ not openbao_service_disabled }}"
+    daemon_reload: true

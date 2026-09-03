@@ -25,13 +25,13 @@
       | regex_search('v(\d+\.\d+\.\d+)') }}
 
 - name: Determine whether OpenBao needs installation
+  when: openbao_task_result_version_check is defined
   ansible.builtin.set_fact:
     openbao_needs_install: >-
       {{
         openbao_task_result_version_check.rc != 0
         or openbao_installed_version != 'v' ~ openbao_version
       }}
-  when: openbao_task_result_version_check is defined
 
 - name: Create OpenBao directory
   when: openbao_needs_install
@@ -154,5 +154,5 @@
     name: >-
       {{ openbao_configuration_data_systemd_path ~
       '/' ~ openbao_configuration_data_systemd_unit_name }}
-    enabled: true
+    enabled: "{{ not openbao_service_disabled }}"
     daemon_reload: true

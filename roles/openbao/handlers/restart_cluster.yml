@@ -21,14 +21,18 @@
       - 429
       - 501
       - 503
+      - -1
   register: openbao_task_result_initialized
   listen: restart_cluster
 
 - name: Restart followers
-  when: openbao_task_result_initialized.status != 200
+  when: openbao_task_result_initialized.status == 429
+  become: true
   ansible.builtin.systemd:
     name: "{{ openbao_configuration_data_systemd_unit_name }}"
     state: restarted
+    enabled: "{{ not openbao_service_disabled }}"
+    daemon_reload: true
   listen: restart_cluster
 
 - name: Wait for followers to come back up
@@ -64,8 +68,10 @@
     openbao_task_result_initialized.status == 200 or
     openbao_task_result_initialized.status == 501 or
     openbao_task_result_initialized.status == 503
+  become: true
   ansible.builtin.systemd:
     name: "{{ openbao_configuration_data_systemd_unit_name }}"
     state: restarted
-    enabled: true
+    enabled: "{{ not openbao_service_disabled }}"
+    daemon_reload: true
   listen: restart_cluster
