@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao repository installation
+# ------------------------------------------------------------------------
+# OpenBao RedHat repository configuration
+
+- name: Configure and enable OpenBao RedHat repository
+  become: true
+  ansible.builtin.yum_repository:
+    name: "{{ openbao_repository_name }}"
+    description: "{{ openbao_repository_description }}"
+    enabled: "{{ openbao_repository_enabled }}"
+    baseurl: "{{ openbao_repository_url }}"
+    gpgcheck: "{{ openbao_repository_gpgcheck }}"
+    gpgkey: "{{ openbao_repository_gpgkey }}"
+    repo_gpgcheck: "{{ openbao_repository_repo_gpgcheck }}"
+    sslcacert: "{{ openbao_repository_sslcacert }}"
+    sslverify: "{{ openbao_repository_sslverify }}"
+    metadata_expire: "{{ openbao_repository_metadata_expire }}"

@@ -1,0 +1,538 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# argument spec file for adfinis.openbao.openbao
+
+argument_specs:
+  main:
+    short_description: Installs and configures OpenBao as a cluster-ready service.
+    description:
+      - Manages OpenBao installation and configuration through package repositories or binary distribution.
+      - Supports TLS, Raft storage, and auto-unseal through various seal backends.
+    options:
+      # Version and Installation Type
+      openbao_version:
+        type: str
+        description: OpenBao version to install or match.
+        default: "2.6.1"
+
+      openbao_binary_installation:
+        type: bool
+        description: Use binary installation instead of package repository.
+        default: false
+
+      # User Configuration
+      openbao_user_creation:
+        type: bool
+        description: Create the operating system user for running OpenBao.
+        default: false
+
+      openbao_user_name:
+        type: str
+        description: Local OpenBao system user name.
+        default: "openbao"
+
+      openbao_user_group_name:
+        type: str
+        description: Local OpenBao system group name.
+        default: "{{ openbao_user_name }}"
+
+      openbao_user_home:
+        type: str
+        description: User home directory.
+        default: "{{ openbao_configuration_base_path }}"
+
+      openbao_user_home_creation:
+        type: bool
+        description: Create the user home directory.
+        default: false
+
+      # Service Management
+      openbao_service_disabled:
+        type: bool
+        description: Disable the OpenBao service.
+        default: false
+
+      # Binary Installation Options
+      openbao_binary_architecture:
+        type: str
+        description: CPU architecture for binary selection (amd64, arm64, etc.).
+        default: "{{ 'amd64' if ansible_facts.architecture == 'x86_64' else ansible_facts.architecture }}"
+
+      openbao_binary_package_name:
+        type: str
+        description: Binary package filename derived from version and architecture.
+        default: "{{ 'openbao_' ~ openbao_version ~ '_linux_' ~ openbao_binary_architecture ~ '.tar.gz' }}"
+
+      openbao_binary_package_download_directory_url:
+        type: str
+        description: Base URL for OpenBao release artifacts.
+        default: "https://github.com/openbao/openbao/releases/download"
+
+      openbao_binary_package_download_url:
+        type: str
+        description: Full URL to download the OpenBao binary distribution.
+        default: "{{ openbao_binary_package_download_directory_url ~ '/v' ~ openbao_version ~ '/' ~ openbao_binary_package_name }}"
+
+      openbao_binary_package_gpg_key_verification:
+        type: bool
+        description: Enable GPG verification for downloaded binary.
+        default: true
+
+      openbao_binary_package_gpg_package_name:
+        type: str
+        description: Package name required for GPG verification.
+        default: "gpg"
+
+      openbao_binary_package_gpg_public_key_url:
+        type: str
+        description: URL to public GPG key for verifying the archive.
+        default: "https://openbao.org/assets/openbao-gpg-pub-20240618.asc"
+
+      openbao_binary_package_download_gpg_key_url:
+        type: str
+        description: URL of the detached GPG signature file.
+        default: "{{ openbao_binary_package_download_url }}.gpgsig"
+
+      # Configuration Paths
+      openbao_configuration_base_path:
+        type: str
+        description: Root directory for runtime and configuration files.
+        default: "{{ '/etc/openbao' if openbao_binary_installation == false else '/opt/openbao' }}"
+
+      openbao_configuration_data_path:
+        type: str
+        description: Base path for cluster data and systemd configuration.
+        default: "/opt/openbao"
+
+      openbao_configuration_runtime_path:
+        type: str
+        description: Directory containing the OpenBao executable.
+        default: "{{ openbao_configuration_base_path }}/bin"
+
+      openbao_configuration_config_path:
+        type: str
+        description: Directory for service configuration and environment files.
+        default: "{{ openbao_configuration_base_path }}"
+
+      openbao_configuration_config_template_file_path:
+        type: str
+        description: Jinja2 template file for HCL configuration.
+        default: "openbao.hcl.j2"
+
+      openbao_configuration_config_file_name:
+        type: str
+        description: Name of the main HCL configuration file.
+        default: "openbao.hcl"
+
+      openbao_configuration_environment_file_name:
+        type: str
+        description: Name of the environment file rendered by the role.
+        default: "openbao.env"
+
+      openbao_configuration_environment_template_file_path:
+        type: str
+        description: Jinja2 template file for environment variables.
+        default: "openbao.env.j2"
+
+      # TLS Configuration
+      openbao_configuration_tls_path:
+        type: str
+        description: Directory for TLS certificates and keys.
+        default: "{{ openbao_configuration_base_path }}/tls"
+
+      openbao_configuration_tls_cert_file:
+        type: str
+        description: Server certificate file path.
+        default: "{{ openbao_configuration_tls_path }}/server.crt"
+
+      openbao_configuration_tls_key_file:
+        type: str
+        description: Server private key file path.
+        default: "{{ openbao_configuration_tls_path }}/server.key"
+
+      openbao_configuration_tls_ca_file:
+        type: str
+        description: CA certificate file path.
+        default: "{{ openbao_configuration_tls_path }}/ca.crt"
+
+      # Data Storage Paths
+      openbao_configuration_data_storage_raft_path:
+        type: str
+        description: Raft storage data directory.
+        default: "{{ openbao_configuration_data_path }}/data"
+
+      openbao_configuration_data_audit_path:
+        type: str
+        description: Audit log directory.
+        default: "{{ openbao_configuration_data_path }}/audit"
+
+      openbao_configuration_data_log_path:
+        type: str
+        description: Log directory for OpenBao logs.
+        default: "{{ openbao_configuration_data_path }}/log"
+
+      # Systemd Configuration
+      openbao_configuration_data_systemd_path:
+        type: str
+        description: Directory for the systemd unit file.
+        default: "{{ openbao_configuration_data_path }}/systemd"
+
+      openbao_configuration_data_systemd_unit_name:
+        type: str
+        description: Name of the systemd service unit file.
+        default: "openbao.service"
+
+      openbao_configuration_data_systemd_template_file_path:
+        type: str
+        description: Jinja2 template file for systemd service unit.
+        default: "openbao.service.j2"
+
+      # API and Cluster Configuration
+      openbao_configuration_api_port:
+        type: int
+        description: OpenBao API listener port.
+        default: 8200
+
+      openbao_configuration_api_addr:
+        type: str
+        description: External URL advertised for the API endpoint.
+        default: "http://{{ inventory_hostname ~ ':' ~ openbao_configuration_api_port }}"
+
+      openbao_configuration_cluster_port:
+        type: int
+        description: OpenBao cluster listener port.
+        default: 8201
+
+      openbao_configuration_cluster_addr:
+        type: str
+        description: URL advertised for clustering with other nodes.
+        default: "http://{{ inventory_hostname ~ ':' ~ openbao_configuration_cluster_port }}"
+
+      # Seal Configuration Backends
+      openbao_configuration_seal_static:
+        type: dict
+        description: Static seal backend configuration (for testing only).
+        options:
+          current_key_id:
+            type: str
+            description: Key identifier for static seal.
+          current_key:
+            type: str
+            description: Encryption key for static seal.
+        default: {}
+
+      openbao_configuration_seal_awskms:
+        type: dict
+        description: AWS KMS seal backend configuration.
+        options:
+          region:
+            type: str
+            description: AWS region.
+          access_key:
+            type: str
+            description: AWS access key.
+          secret_key:
+            type: str
+            description: AWS secret key.
+          session_token:
+            type: str
+            description: AWS session token.
+          kms_key_id:
+            type: str
+            description: AWS KMS key ID or ARN.
+          endpoint:
+            type: str
+            description: Custom KMS endpoint URL.
+          iam_endpoint:
+            type: str
+            description: Custom IAM endpoint URL.
+          sts_endpoint:
+            type: str
+            description: Custom STS endpoint URL.
+          role:
+            type: str
+            description: AWS IAM role to assume.
+          disable_renewal:
+            type: bool
+            description: Disable credential renewal.
+          lease_path:
+            type: str
+            description: Path for lease storage.
+        default: {}
+
+      openbao_configuration_seal_azurekeyvault:
+        type: dict
+        description: Azure Key Vault seal backend configuration.
+        options:
+          tenant_id:
+            type: str
+            description: Azure tenant ID.
+          client_id:
+            type: str
+            description: Azure client ID.
+          client_secret:
+            type: str
+            description: Azure client secret.
+          key_name:
+            type: str
+            description: Key name in Key Vault.
+          key_vault_name:
+            type: str
+            description: Key Vault name.
+          environment:
+            type: str
+            description: Azure environment (e.g., AzurePublicCloud).
+          vault_addr:
+            type: str
+            description: Custom vault address.
+          disable_renewal:
+            type: bool
+            description: Disable credential renewal.
+          lease_path:
+            type: str
+            description: Path for lease storage.
+        default: {}
+
+      openbao_configuration_seal_gcpckms:
+        type: dict
+        description: Google Cloud KMS seal backend configuration.
+        options:
+          project:
+            type: str
+            description: GCP project ID.
+          region:
+            type: str
+            description: GCP region.
+          key_ring:
+            type: str
+            description: GCP KMS key ring name.
+          crypto_key:
+            type: str
+            description: GCP KMS crypto key name.
+          credentials:
+            type: str
+            description: GCP service account credentials JSON.
+          disable_renewal:
+            type: bool
+            description: Disable credential renewal.
+          lease_path:
+            type: str
+            description: Path for lease storage.
+        default: {}
+
+      openbao_configuration_seal_transit:
+        type: dict
+        description: Transit seal backend configuration.
+        options:
+          address:
+            type: str
+            description: Address of the transit server.
+          token:
+            type: str
+            description: Authentication token.
+          disable_renewal:
+            type: bool
+            description: Disable credential renewal.
+          mount_path:
+            type: str
+            description: Mount path for transit backend.
+          namespace:
+            type: str
+            description: Namespace for transit backend.
+          tls_skip_verify:
+            type: bool
+            description: Skip TLS verification.
+          lease_path:
+            type: str
+            description: Path for lease storage.
+        default: {}
+
+      openbao_configuration_seal_pkcs11:
+        type: dict
+        description: PKCS11 seal backend configuration.
+        options:
+          lib:
+            type: str
+            description: Path to PKCS11 library.
+          slot:
+            type: str
+            description: PKCS11 slot number.
+          pin:
+            type: str
+            description: PIN for PKCS11 token.
+          token_label:
+            type: str
+            description: PKCS11 token label.
+          key_label:
+            type: str
+            description: PKCS11 key label.
+          key_id:
+            type: str
+            description: PKCS11 key ID.
+          mechanism:
+            type: str
+            description: PKCS11 mechanism.
+          disable_renewal:
+            type: bool
+            description: Disable credential renewal.
+          lease_path:
+            type: str
+            description: Path for lease storage.
+        default: {}
+
+      openbao_configuration_seal_ocikms:
+        type: dict
+        description: Oracle Cloud KMS seal backend configuration.
+        options:
+          compartment_id:
+            type: str
+            description: OCI compartment ID.
+          key_id:
+            type: str
+            description: OCI key ID.
+          crypto_endpoint:
+            type: str
+            description: OCI crypto endpoint.
+          management_endpoint:
+            type: str
+            description: OCI management endpoint.
+          auth_type:
+            type: str
+            description: Authentication type.
+          disable_renewal:
+            type: bool
+            description: Disable credential renewal.
+          lease_path:
+            type: str
+            description: Path for lease storage.
+        default: {}
+
+      openbao_configuration_seal_alicloudkms:
+        type: dict
+        description: Alibaba Cloud KMS seal backend configuration.
+        options:
+          region:
+            type: str
+            description: Alibaba Cloud region.
+          access_key:
+            type: str
+            description: Alibaba Cloud access key.
+          secret_key:
+            type: str
+            description: Alibaba Cloud secret key.
+          kms_key_id:
+            type: str
+            description: Alibaba Cloud KMS key ID.
+          endpoint:
+            type: str
+            description: Custom KMS endpoint.
+          role_arn:
+            type: str
+            description: Role ARN for authentication.
+          disable_renewal:
+            type: bool
+            description: Disable credential renewal.
+          lease_path:
+            type: str
+            description: Path for lease storage.
+        default: {}
+
+      openbao_configuration_seal_aead:
+        type: dict
+        description: AEAD seal backend configuration.
+        options:
+          type:
+            type: str
+            description: AEAD cipher type.
+          key_name:
+            type: str
+            description: Key name.
+          key_id:
+            type: str
+            description: Key ID.
+          namespace:
+            type: str
+            description: Namespace.
+          disabled:
+            type: bool
+            description: Disable the seal.
+          lease_path:
+            type: str
+            description: Path for lease storage.
+        default: {}
+
+      # Repository Configuration (OS-specific variables)
+      openbao_repository_name:
+        type: str
+        description: Repository name for package manager.
+        default: "openbao"
+
+      openbao_repository_description:
+        type: str
+        description: Repository description (RedHat/CentOS only).
+        default: "OpenBao community repository"
+
+      openbao_repository_url:
+        type: str
+        description: Repository URL (varies by OS).
+        default: "OS-dependent (Debian: https://pkgs.openbao.org/deb/, RedHat: https://pkgs.openbao.org/rpm/$basearch)"
+
+      openbao_repository_package_name:
+        type: str
+        description: Package name to install from repository (varies by OS).
+        default: "OS-dependent (Debian: openbao=VERSION, RedHat: openbao-VERSION-1)"
+
+      openbao_repository_components:
+        type: str
+        description: Repository components (Debian only).
+        default: "main"
+
+      openbao_repository_suites:
+        type: str
+        description: Repository suites (Debian only).
+        default: "stable"
+
+      openbao_repository_types:
+        type: str
+        description: Repository types (Debian only).
+        default: "deb"
+
+      openbao_repository_signature:
+        type: str
+        description: Repository GPG signature URL (Debian only).
+        default: "{{ openbao_binary_package_gpg_public_key_url }}"
+
+      openbao_repository_gpgkey:
+        type: str
+        description: Repository GPG key URL (RedHat only).
+        default: "{{ openbao_binary_package_gpg_public_key_url }}"
+
+      openbao_repository_gpgcheck:
+        type: bool
+        description: Enable GPG checking for repository packages (RedHat only).
+        default: true
+
+      openbao_repository_repo_gpgcheck:
+        type: bool
+        description: Enable repository metadata GPG checking (RedHat only).
+        default: false
+
+      openbao_repository_enabled:
+        type: bool
+        description: Enable the repository (RedHat only).
+        default: true
+
+      openbao_repository_sslverify:
+        type: bool
+        description: Verify SSL certificates (RedHat only).
+        default: true
+
+      openbao_repository_sslcacert:
+        type: str
+        description: CA certificate path for SSL verification (RedHat only).
+        default: "/etc/pki/tls/certs/ca-bundle.crt"
+
+      openbao_repository_metadata_expire:
+        type: int
+        description: Repository metadata expiration time in seconds (RedHat only).
+        default: 300

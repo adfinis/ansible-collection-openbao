@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao repository installation
+# ------------------------------------------------------------------------
+# OpenBao Debian repository configuration
+
+- name: Configure and enable OpenBao Debian repository
+  become: true
+  ansible.builtin.deb822_repository:
+    name: "{{ openbao_repository_name }}"
+    types: "{{ openbao_repository_types }}"
+    uris: "{{ openbao_repository_url }}"
+    suites: "{{ openbao_repository_suites }}"
+    components: "{{ openbao_repository_components }}"
+    signed_by: "{{ openbao_repository_signature }}"
