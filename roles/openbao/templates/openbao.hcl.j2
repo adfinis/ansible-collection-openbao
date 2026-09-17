@@ -1,0 +1,66 @@
+# {{ ansible_managed }}
+
+ui = true
+
+log_file = "{{ openbao_configuration_data_log_path }}/openbao.log"
+
+listener "tcp" {
+  address = "0.0.0.0:8200"
+  tls_disable = "true"
+  telemetry {
+    unauthenticated_metrics_access = "true"
+  }
+}
+
+telemetry {
+  disable_hostname = true
+  prometheus_retention_time = "12h"
+}
+
+cluster_addr = "{{ openbao_configuration_cluster_addr }}"
+api_addr     = "{{ openbao_configuration_api_addr }}"
+
+storage "raft" {
+  path = "{{ openbao_configuration_data_storage_raft_path }}"
+  node_id = "{{ inventory_hostname }}"
+
+{% for node in ansible_play_hosts_all %}
+{% if node != inventory_hostname %}
+  retry_join {
+      leader_api_addr = "http://{{ node }}:{{ openbao_configuration_api_port }}"
+  }
+{% endif %}
+{% endfor %}
+}
+
+audit "file" "audit" {
+  description = "Write audit information to {{ openbao_configuration_data_audit_path }}/audit.log"
+  options {
+    file_path = "{{ openbao_configuration_data_audit_path }}/audit.log"
+  }
+}
+
+{% set seal_configs = {
+  'static': openbao_configuration_seal_static | default({}),
+  'awskms': openbao_configuration_seal_awskms | default({}),
+  'azurekeyvault': openbao_configuration_seal_azurekeyvault | default({}),
+  'gcpckms': openbao_configuration_seal_gcpckms | default({}),
+  'transit': openbao_configuration_seal_transit | default({}),
+  'pkcs11': openbao_configuration_seal_pkcs11 | default({}),
+  'ocikms': openbao_configuration_seal_ocikms | default({}),
+  'alicloudkms': openbao_configuration_seal_alicloudkms | default({}),
+  'aead': openbao_configuration_seal_aead | default({})
+} %}
+{% for seal_type, seal_config in seal_configs.items() %}
+{% if seal_config %}
+{% set seal_entries = seal_config | default({}) | dict2items | selectattr('value', 'defined') | selectattr('value', 'ne', none) | selectattr('value', 'ne', '') %}
+{% if seal_entries | length > 0 %}
+seal "{{ seal_type }}" {
+{% for item in seal_entries %}
+  {{ item.key }} = {% if item.value is boolean %}{{ item.value | lower }}{% else %}"{{ item.value }}"
+{% endif %}
+{% endfor %}
+}
+{% endif %}
+{% endif %}
+{% endfor %}

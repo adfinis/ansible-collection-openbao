@@ -1,0 +1,77 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# handlers file for OpenBao safe cluster restart
+# ------------------------------------------------------------------------
+# Checks node health and leader state, restarts followers and leader in
+# the correct order, and waits for the cluster to recover before
+# continuing.
+
+- name: Check node status
+  ansible.builtin.uri:
+    url: >-
+      http://{{ inventory_hostname ~ ':' ~ openbao_configuration_api_port }}
+      /v1/sys/health
+    method: GET
+    # 200 if initialized, unsealed, and active
+    # 429 if unsealed and standby
+    # 501 if not initialized
+    # 503 if sealed
+    status_code:
+      - 200
+      - 429
+      - 501
+      - 503
+      - -1
+  register: openbao_task_result_initialized
+  listen: restart_cluster
+
+- name: Restart followers
+  when: openbao_task_result_initialized.status == 429
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ openbao_configuration_data_systemd_unit_name }}"
+    state: restarted
+    enabled: "{{ not openbao_service_disabled }}"
+    daemon_reload: true
+  listen: restart_cluster
+
+- name: Wait for followers to come back up
+  when: openbao_task_result_initialized.status == 200
+  ansible.builtin.uri:
+    url: >-
+      http://{{ item ~ ':' ~ openbao_configuration_api_port }}
+      /v1/sys/health
+    method: GET
+    # 200 if initialized, unsealed, and active
+    # 429 if unsealed and standby
+    # 501 if not initialized
+    # 503 if sealed
+    status_code:
+      - 200
+      - 429
+    body_format: json
+  register: openbao_task_result_followers
+  retries: 6
+  until: openbao_task_result_followers.json.version == openbao_version
+  delay: 10
+  changed_when: false
+  loop: "{{ ansible_play_hosts_all | reject('equalto', inventory_hostname) }}"
+  listen: restart_cluster
+
+- name: >-
+    {{ 'Restart active node (leader)'
+    if openbao_task_result_initialized.status == 200
+    else
+      '(Re-)Start and enable OpenBao service on uninitialized or sealed nodes'
+    }}
+  when: >-
+    openbao_task_result_initialized.status == 200 or
+    openbao_task_result_initialized.status == 501 or
+    openbao_task_result_initialized.status == 503
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ openbao_configuration_data_systemd_unit_name }}"
+    state: restarted
+    enabled: "{{ not openbao_service_disabled }}"
+    daemon_reload: true
+  listen: restart_cluster

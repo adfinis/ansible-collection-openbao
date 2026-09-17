@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao repository installation
+# ------------------------------------------------------------------------
+# Installs the OpenBao package and enables the service
+
+- name: Install OpenBao from repository
+  become: true
+  ansible.builtin.package:
+    name: "{{ openbao_repository_package_name }}"
+    state: present
+    update_cache: true
+    allow_downgrade: true
+  notify: restart_cluster
+
+- name: Ensure OpenBao service is enabled
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ openbao_configuration_data_systemd_unit_name }}"
+    enabled: "{{ not openbao_service_disabled }}"
+    daemon_reload: true

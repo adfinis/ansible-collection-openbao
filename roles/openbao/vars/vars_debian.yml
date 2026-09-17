@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# vars file for openbao
+
+openbao_repository_package_name: "{{ 'openbao=' ~ openbao_version }}"
+openbao_repository_name: "openbao"
+openbao_repository_url: "https://pkgs.openbao.org/deb/"
+openbao_repository_components: "main"
+openbao_repository_suites: "stable"
+openbao_repository_types: "deb"
+openbao_repository_signature: "{{ openbao_binary_package_gpg_public_key_url }}"
