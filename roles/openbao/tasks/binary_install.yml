@@ -14,7 +14,9 @@
     argv:
       - "{{ openbao_configuration_runtime_path ~ '/bao' }}"
       - "-version"
-  failed_when: false
+  failed_when:
+    - openbao_task_result_version_check.rc != 0
+    - "'No such file or directory' not in (openbao_task_result_version_check.msg | default(''))"
   changed_when: false
   register: openbao_task_result_version_check
 
