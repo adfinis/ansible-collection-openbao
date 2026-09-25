@@ -6,6 +6,44 @@
 # This file creates the required runtime and data directories and writes
 # the HCL and environment files used by the OpenBao service.
 
+- name: Preparation tasks
+  delegate_to: localhost
+  run_once: true
+  block:
+    - name: Create a local temporary config template file on the controller
+      when: openbao_configuration_config_template_content | length > 0
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .j2
+      register: openbao_local_temp_config_template_file
+
+    - name: Create a local temporary environment template file on the controller
+      when: openbao_configuration_environment_template_content | length > 0
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .j2
+      register: openbao_local_temp_environment_template_file
+
+    - name: Add OpenBao configuration file (from content)
+      when: openbao_configuration_config_template_content | length > 0
+      ansible.builtin.copy:
+        content: "{{ openbao_configuration_config_template_content }}"
+        dest: >-
+          {{ openbao_local_temp_config_template_file.path }}
+        mode: "0640"
+        owner: "{{ lookup('ansible.builtin.pipe', 'id -u') }}"
+        group: "{{ lookup('ansible.builtin.pipe', 'id -g') }}"
+
+    - name: Add OpenBao environment file (from content)
+      when: openbao_configuration_environment_template_content | length > 0
+      ansible.builtin.copy:
+        content: "{{ openbao_configuration_environment_template_content }}"
+        dest: >-
+          {{ openbao_local_temp_environment_template_file.path }}
+        mode: "0640"
+        owner: "{{ lookup('ansible.builtin.pipe', 'id -u') }}"
+        group: "{{ lookup('ansible.builtin.pipe', 'id -g') }}"
+
 - name: Configure OpenBao
   become: true
   block:
@@ -56,7 +94,11 @@
 
     - name: Add OpenBao configuration file
       ansible.builtin.template:
-        src: "{{ openbao_configuration_config_template_file_path }}"
+        src: >-
+          {{ openbao_local_temp_config_template_file.path
+          if openbao_local_temp_config_template_file is defined
+          else openbao_configuration_config_template_file_path
+          }}
         dest: >-
           {{ openbao_configuration_config_path ~
           '/' ~ openbao_configuration_config_file_name }}
@@ -67,7 +109,11 @@
 
     - name: Add OpenBao environment file
       ansible.builtin.template:
-        src: "{{ openbao_configuration_environment_template_file_path }}"
+        src: >-
+          {{ openbao_local_temp_environment_template_file.path
+          if openbao_local_temp_environment_template_file is defined
+          else openbao_configuration_environment_template_file_path
+          }}
         dest: >-
           {{ openbao_configuration_config_path ~
           '/' ~ openbao_configuration_environment_file_name }}

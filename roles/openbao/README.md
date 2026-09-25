@@ -42,10 +42,12 @@ The role supports a broad set of variables for installation, runtime paths, TLS 
 | `openbao_configuration_data_path` | `"/opt/openbao"` | Base path used for runtime, data, logs, and systemd configuration. |
 | `openbao_configuration_runtime_path` | `"{{ openbao_configuration_base_path }}/bin"` | Directory containing the OpenBao executable. |
 | `openbao_configuration_config_path` | `"{{ openbao_configuration_base_path }}"` | Directory containing the main config and environment files. |
-| `openbao_configuration_config_template_file_path` | `"openbao.hcl.j2"` | Template used to render the HCL config file. |
+| `openbao_configuration_config_template_content` | `{{ lookup('file', openbao_configuration_config_template_file_path) }}` | File content loaded from the HCL template path. |
 | `openbao_configuration_config_file_name` | `"openbao.hcl"` | Name of the main HCL configuration file. |
+| `openbao_configuration_config_template_file_path` | `"openbao.hcl.j2"` | Path to the HCL config template file. |
+| `openbao_configuration_environment_template_content` | `{{ lookup('file', openbao_configuration_environment_template_file_path) }}` | File content loaded from the environment template path. |
 | `openbao_configuration_environment_file_name` | `"openbao.env"` | Name of the environment file rendered on the host. |
-| `openbao_configuration_environment_template_file_path` | `"openbao.env.j2"` | Template used to render the environment file. |
+| `openbao_configuration_environment_template_file_path` | `"openbao.env.j2"` | Path to the environment template file. |
 | `openbao_configuration_tls_path` | `"{{ openbao_configuration_data_path }}/tls"` | Directory for TLS material. |
 | `openbao_configuration_tls_cert_content` | `{{ lookup('file', openbao_configuration_tls_cert_file_src) if openbao_configuration_tls_cert_file_src \| length > 0 else lookup('ansible.builtin.env', 'TLS_SERVER_CERT') }}` | PEM contents for the server certificate; reads a local file when `*_file_src` is set. |
 | `openbao_configuration_tls_cert_file` | `{{ openbao_configuration_tls_path ~ '/' ~ openbao_configuration_tls_cert_file_src \| basename if openbao_configuration_tls_cert_file_src \| length > 0 else openbao_configuration_tls_path ~ '/server.crt' }}` | Server certificate location on disk. |
