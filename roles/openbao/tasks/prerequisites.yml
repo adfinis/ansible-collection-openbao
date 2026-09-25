@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao pre-installation setup
+# ------------------------------------------------------------------------
+# Collects information about installed packages and creates the
+# configured system user and home directory when local user provisioning
+# is enabled.
+
+- name: "Collect installed packages information"
+  ansible.builtin.package_facts:
+    manager: "auto"
+
+- name: Fetch existing system users
+  ansible.builtin.getent:
+    database: passwd
+
+- name: Create OpenBao user if it does not exist and user creation is enabled
+  when:
+    - openbao_user_creation
+    - openbao_user_name not in ansible_facts.getent_passwd
+  become: true
+  ansible.builtin.user:
+    comment: "Local user for OpenBao"
+    name: "{{ openbao_user_name }}"
+    home: "{{ openbao_user_home }}"
+    create_home: "{{ openbao_user_home_creation }}"

@@ -1,0 +1,123 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao configuration
+# ------------------------------------------------------------------------
+# Render the OpenBao service configuration for the target host.
+# This file creates the required runtime and data directories and writes
+# the HCL and environment files used by the OpenBao service.
+
+- name: Preparation tasks
+  delegate_to: localhost
+  run_once: true
+  block:
+    - name: Create a local temporary config template file on the controller
+      when: openbao_configuration_config_template_content | length > 0
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .j2
+      register: openbao_local_temp_config_template_file
+
+    - name: Create a local temporary environment template file on the controller
+      when: openbao_configuration_environment_template_content | length > 0
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .j2
+      register: openbao_local_temp_environment_template_file
+
+    - name: Add OpenBao configuration file (from content)
+      when: openbao_configuration_config_template_content | length > 0
+      ansible.builtin.copy:
+        content: "{{ openbao_configuration_config_template_content }}"
+        dest: >-
+          {{ openbao_local_temp_config_template_file.path }}
+        mode: "0640"
+        owner: "{{ lookup('ansible.builtin.pipe', 'id -u') }}"
+        group: "{{ lookup('ansible.builtin.pipe', 'id -g') }}"
+
+    - name: Add OpenBao environment file (from content)
+      when: openbao_configuration_environment_template_content | length > 0
+      ansible.builtin.copy:
+        content: "{{ openbao_configuration_environment_template_content }}"
+        dest: >-
+          {{ openbao_local_temp_environment_template_file.path }}
+        mode: "0640"
+        owner: "{{ lookup('ansible.builtin.pipe', 'id -u') }}"
+        group: "{{ lookup('ansible.builtin.pipe', 'id -g') }}"
+
+- name: Configure OpenBao
+  become: true
+  block:
+    - name: Create OpenBao directory structure
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+        mode: "0750"
+      loop:
+        - "{{ openbao_configuration_config_path }}"
+        - "{{ openbao_configuration_data_storage_raft_path }}"
+        - "{{ openbao_configuration_data_audit_path }}"
+        - "{{ openbao_configuration_data_log_path }}"
+        - "{{ openbao_configuration_tls_path }}"
+
+    - name: Deploy TLS Certificate (Public Key)
+      when: openbao_configuration_tls_cert_content | length > 0
+      ansible.builtin.copy:
+        content: "{{ openbao_configuration_tls_cert_content }}"
+        dest: "{{ openbao_configuration_tls_cert_file }}"
+        mode: "0644"
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+      notify: restart_cluster
+
+    - name: Deploy TLS Private Key
+      when: openbao_configuration_tls_key_content | length > 0
+      ansible.builtin.copy:
+        content: "{{ openbao_configuration_tls_key_content }}"
+        dest: "{{ openbao_configuration_tls_key_file }}"
+        mode: "0600"
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+      diff: false
+      notify: restart_cluster
+
+    - name: Deploy TLS Client CA Certificate
+      when: openbao_configuration_tls_client_ca_content | length > 0
+      ansible.builtin.copy:
+        content: "{{ openbao_configuration_tls_client_ca_content }}"
+        dest: "{{ openbao_configuration_tls_client_ca_file }}"
+        mode: "0644"
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+      notify: restart_cluster
+
+    - name: Add OpenBao configuration file
+      ansible.builtin.template:
+        src: >-
+          {{ openbao_local_temp_config_template_file.path
+          if openbao_local_temp_config_template_file is defined
+          else openbao_configuration_config_template_file_path
+          }}
+        dest: >-
+          {{ openbao_configuration_config_path ~
+          '/' ~ openbao_configuration_config_file_name }}
+        mode: "0640"
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+      notify: restart_cluster
+
+    - name: Add OpenBao environment file
+      ansible.builtin.template:
+        src: >-
+          {{ openbao_local_temp_environment_template_file.path
+          if openbao_local_temp_environment_template_file is defined
+          else openbao_configuration_environment_template_file_path
+          }}
+        dest: >-
+          {{ openbao_configuration_config_path ~
+          '/' ~ openbao_configuration_environment_file_name }}
+        mode: "0640"
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+      notify: restart_cluster
