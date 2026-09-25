@@ -75,21 +75,24 @@ The role supports a broad set of variables for installation, runtime paths, TLS 
 | `openbao_configuration_seal_ocikms` | `{}` | OCI KMS seal backend config. |
 | `openbao_configuration_seal_alicloudkms` | `{}` | Alibaba Cloud KMS seal backend config. |
 | `openbao_configuration_seal_aead` | `{}` | AEAD seal backend config. |
-| `openbao_repository_name` | `"openbao"` | Repository name used by the package manager. |
-| `openbao_repository_description` | `"OpenBao community repository"` | Repository description for RedHat/CentOS. |
-| `openbao_repository_url` | `OS-dependent` | Repository URL for the target OS. |
-| `openbao_repository_package_name` | `OS-dependent` | Package name to install from the repository. |
-| `openbao_repository_components` | `"main"` | Repository components for Debian. |
-| `openbao_repository_suites` | `"stable"` | Repository suites for Debian. |
-| `openbao_repository_types` | `"deb"` | Repository types for Debian. |
-| `openbao_repository_signature` | `"{{ openbao_binary_package_gpg_public_key_url }}"` | Repository GPG signature URL used by Debian. |
-| `openbao_repository_gpgkey` | `"{{ openbao_binary_package_gpg_public_key_url }}"` | Repository GPG key URL used by RedHat. |
-| `openbao_repository_gpgcheck` | `true` | Enable GPG checking for repository packages. |
-| `openbao_repository_repo_gpgcheck` | `false` | Enable GPG checking for repository metadata. |
-| `openbao_repository_enabled` | `true` | Enable the repository on RedHat-based systems. |
-| `openbao_repository_sslverify` | `true` | Verify SSL certificates for the configured repo. |
-| `openbao_repository_sslcacert` | `"/etc/pki/tls/certs/ca-bundle.crt"` | CA bundle path used for repository SSL verification. |
-| `openbao_repository_metadata_expire` | `300` | Repository metadata expiration time in seconds. |
+| `openbao_debian_repository_package_name` | `{{ 'openbao=' ~ openbao_version }}` | Debian package specification used by the Debian repository task. |
+| `openbao_debian_repository_name` | `"openbao"` | Debian repository name. |
+| `openbao_debian_repository_url` | `"https://pkgs.openbao.org/deb/"` | Debian repository URL. |
+| `openbao_debian_repository_components` | `"main"` | Debian repository components. |
+| `openbao_debian_repository_suites` | `"stable"` | Debian repository suite. |
+| `openbao_debian_repository_types` | `"deb"` | Debian repository type. |
+| `openbao_debian_repository_signature` | `"{{ openbao_binary_package_gpg_public_key_url }}"` | Debian repository signing key URL. |
+| `openbao_redhat_repository_name` | `"openbao"` | RedHat repository name. |
+| `openbao_redhat_repository_description` | `"OpenBao community repository"` | RedHat repository description. |
+| `openbao_redhat_repository_url` | `"https://pkgs.openbao.org/rpm/$basearch"` | RedHat repository base URL. |
+| `openbao_redhat_repository_package_name` | `{{ 'openbao-' ~ openbao_version ~ '-1' }}` | RedHat package specification used by the RPM repository task. |
+| `openbao_redhat_repository_repo_gpgcheck` | `false` | Enable repository metadata GPG checking for RedHat. |
+| `openbao_redhat_repository_gpgcheck` | `true` | Enable package GPG checking for RedHat. |
+| `openbao_redhat_repository_enabled` | `true` | Enable the RedHat repository. |
+| `openbao_redhat_repository_gpgkey` | `"{{ openbao_binary_package_gpg_public_key_url }}"` | RedHat repository GPG key URL. |
+| `openbao_redhat_repository_sslverify` | `true` | Verify SSL certificates for RedHat repository downloads. |
+| `openbao_redhat_repository_sslcacert` | `"/etc/pki/tls/certs/ca-bundle.crt"` | CA bundle used for RedHat repository SSL verification. |
+| `openbao_redhat_repository_metadata_expire` | `300` | RedHat repository metadata expiration time in seconds. |
 
 Seal configuration
 ------------------

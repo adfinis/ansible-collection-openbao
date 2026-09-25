@@ -7,9 +7,18 @@
 - name: Configure and enable OpenBao Debian repository
   become: true
   ansible.builtin.deb822_repository:
-    name: "{{ openbao_repository_name }}"
-    types: "{{ openbao_repository_types }}"
-    uris: "{{ openbao_repository_url }}"
-    suites: "{{ openbao_repository_suites }}"
-    components: "{{ openbao_repository_components }}"
-    signed_by: "{{ openbao_repository_signature }}"
+    name: "{{ openbao_debian_repository_name }}"
+    types: "{{ openbao_debian_repository_types }}"
+    uris: "{{ openbao_debian_repository_url }}"
+    suites: "{{ openbao_debian_repository_suites }}"
+    components: "{{ openbao_debian_repository_components }}"
+    signed_by: "{{ openbao_debian_repository_signature }}"
+
+- name: Install OpenBao from repository
+  become: true
+  ansible.builtin.package:
+    name: "{{ openbao_debian_repository_package_name }}"
+    state: present
+    update_cache: true
+    allow_downgrade: true
+  notify: restart_cluster

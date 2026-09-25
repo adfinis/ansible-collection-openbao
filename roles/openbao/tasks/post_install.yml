@@ -30,6 +30,13 @@
     - "{{ openbao_configuration_api_port }}/tcp"
     - "{{ openbao_configuration_cluster_port }}/tcp"
 
+- name: Ensure OpenBao service is enabled
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ openbao_configuration_data_systemd_unit_name }}"
+    enabled: "{{ not openbao_service_disabled }}"
+    daemon_reload: true
+
 - name: Start OpenBao service
   become: true
   ansible.builtin.systemd:

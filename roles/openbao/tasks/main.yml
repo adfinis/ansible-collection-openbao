@@ -6,30 +6,22 @@
 # post-install adjustments, and final configuration tasks in the correct
 # order.
 
-- name: Load OS-specific variables
-  ansible.builtin.include_vars: "vars_{{ ansible_facts.os_family | lower }}.yml"
-
 - name: Include OpenBao pre-installation tasks
   ansible.builtin.import_tasks: prerequisites.yml
   tags: [install, prerequisites]
 
-- name: Include OpenBao Debian repository configuration tasks
+- name: Include OpenBao Debian repository installation tasks
   when:
     - not openbao_binary_installation
     - ansible_facts.os_family == 'Debian'
   ansible.builtin.import_tasks: debian_repository_install.yml
   tags: [install, repository_install]
 
-- name: Include OpenBao Redhat repository configuration tasks
+- name: Include OpenBao Redhat repository installation tasks
   when:
     - not openbao_binary_installation
     - ansible_facts.os_family == 'RedHat'
   ansible.builtin.import_tasks: redhat_repository_install.yml
-  tags: [install, repository_install]
-
-- name: Include OpenBao from repository installation tasks
-  when: not openbao_binary_installation
-  ansible.builtin.import_tasks: repository_install.yml
   tags: [install, repository_install]
 
 - name: Include OpenBao binary installation prerequisites tasks

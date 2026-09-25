@@ -519,77 +519,92 @@ argument_specs:
         default: {}
 
       # Repository Configuration (OS-specific variables)
-      openbao_repository_name:
+      openbao_debian_repository_package_name:
         type: str
-        description: Repository name for package manager.
+        description: Debian package specification used by the Debian repository task.
+        default: "{{ 'openbao=' ~ openbao_version }}"
+
+      openbao_debian_repository_name:
+        type: str
+        description: Debian repository name.
         default: "openbao"
 
-      openbao_repository_description:
+      openbao_debian_repository_url:
         type: str
-        description: Repository description (RedHat/CentOS only).
-        default: "OpenBao community repository"
+        description: Debian repository URL.
+        default: "https://pkgs.openbao.org/deb/"
 
-      openbao_repository_url:
+      openbao_debian_repository_components:
         type: str
-        description: Repository URL (varies by OS).
-        default: "OS-dependent (Debian: https://pkgs.openbao.org/deb/, RedHat: https://pkgs.openbao.org/rpm/$basearch)"
-
-      openbao_repository_package_name:
-        type: str
-        description: Package name to install from repository (varies by OS).
-        default: "OS-dependent (Debian: openbao=VERSION, RedHat: openbao-VERSION-1)"
-
-      openbao_repository_components:
-        type: str
-        description: Repository components (Debian only).
+        description: Debian repository components.
         default: "main"
 
-      openbao_repository_suites:
+      openbao_debian_repository_suites:
         type: str
-        description: Repository suites (Debian only).
+        description: Debian repository suite.
         default: "stable"
 
-      openbao_repository_types:
+      openbao_debian_repository_types:
         type: str
-        description: Repository types (Debian only).
+        description: Debian repository type.
         default: "deb"
 
-      openbao_repository_signature:
+      openbao_debian_repository_signature:
         type: str
-        description: Repository GPG signature URL (Debian only).
+        description: Debian repository signing key URL.
         default: "{{ openbao_binary_package_gpg_public_key_url }}"
 
-      openbao_repository_gpgkey:
+      openbao_redhat_repository_name:
         type: str
-        description: Repository GPG key URL (RedHat only).
-        default: "{{ openbao_binary_package_gpg_public_key_url }}"
+        description: RedHat repository name.
+        default: "openbao"
 
-      openbao_repository_gpgcheck:
-        type: bool
-        description: Enable GPG checking for repository packages (RedHat only).
-        default: true
+      openbao_redhat_repository_description:
+        type: str
+        description: RedHat repository description.
+        default: "OpenBao community repository"
 
-      openbao_repository_repo_gpgcheck:
+      openbao_redhat_repository_url:
+        type: str
+        description: RedHat repository base URL.
+        default: "https://pkgs.openbao.org/rpm/$basearch"
+
+      openbao_redhat_repository_package_name:
+        type: str
+        description: RedHat package specification used by the RPM repository task.
+        default: "{{ 'openbao-' ~ openbao_version ~ '-1' }}"
+
+      openbao_redhat_repository_repo_gpgcheck:
         type: bool
-        description: Enable repository metadata GPG checking (RedHat only).
+        description: Enable repository metadata GPG checking for RedHat.
         default: false
 
-      openbao_repository_enabled:
+      openbao_redhat_repository_gpgcheck:
         type: bool
-        description: Enable the repository (RedHat only).
+        description: Enable package GPG checking for RedHat.
         default: true
 
-      openbao_repository_sslverify:
+      openbao_redhat_repository_enabled:
         type: bool
-        description: Verify SSL certificates (RedHat only).
+        description: Enable the RedHat repository.
         default: true
 
-      openbao_repository_sslcacert:
+      openbao_redhat_repository_gpgkey:
         type: str
-        description: CA certificate path for SSL verification (RedHat only).
+        description: RedHat repository GPG key URL.
+        default: "{{ openbao_binary_package_gpg_public_key_url }}"
+
+      openbao_redhat_repository_sslverify:
+        type: bool
+        description: Verify SSL certificates for RedHat repository downloads.
+        default: true
+
+      openbao_redhat_repository_sslcacert:
+        type: str
+        description: CA bundle used for RedHat repository SSL verification.
         default: "/etc/pki/tls/certs/ca-bundle.crt"
 
-      openbao_repository_metadata_expire:
+      openbao_redhat_repository_metadata_expire:
         type: int
-        description: Repository metadata expiration time in seconds (RedHat only).
+        description: RedHat repository metadata expiration time in seconds.
         default: 300
