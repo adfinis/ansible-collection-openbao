@@ -153,7 +153,8 @@ Example Testlab Setup
 
 The following instructions show how to setup a testlab installation on VMs or on bare metal.
 
-> ⚠️ THIS IS FOR TESTING ONLY AND SHALL NOT BE USED IN RPODUCTION ⚠️
+> [!WARNING]
+> THIS IS FOR TESTING ONLY AND SHALL NOT BE USED IN RPODUCTION
 
 **Requirements:**
 
@@ -288,8 +289,7 @@ The following instructions show how to setup a testlab installation on VMs or on
         host-2       https://host-2.test.lab:8200    https://host-2.test.lab:8201    false          2.6.1      2.6.1              2026-09-25T09:56:19+02:00
         host-3       https://host-3.test.lab:8200    https://host-3.test.lab:8201    false          2.6.1      2.6.1              2026-09-25T09:56:19+02:00
 
-> 💡
->
+> [!TIP]
 > Certificates can also be passed using environment variables `TLS_SERVER_KEY`, `TLS_SERVER_CERT` and `TLS_CLIENT_CA_CERT`. E.g. with the following `playbook.yml`
 >
 >     cat <<EOF > playbook.yml
