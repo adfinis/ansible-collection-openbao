@@ -9,8 +9,9 @@
 - name: Check node status
   ansible.builtin.uri:
     url: >-
-      http://{{ inventory_hostname ~ ':' ~ openbao_configuration_api_port }}
+      https://{{ inventory_hostname ~ ':' ~ openbao_configuration_api_port }}
       /v1/sys/health
+    validate_certs: false
     method: GET
     # 200 if initialized, unsealed, and active
     # 429 if unsealed and standby
@@ -39,8 +40,9 @@
   when: openbao_task_result_initialized.status == 200
   ansible.builtin.uri:
     url: >-
-      http://{{ item ~ ':' ~ openbao_configuration_api_port }}
+      https://{{ item ~ ':' ~ openbao_configuration_api_port }}
       /v1/sys/health
+    validate_certs: false
     method: GET
     # 200 if initialized, unsealed, and active
     # 429 if unsealed and standby

@@ -22,6 +22,38 @@
         - "{{ openbao_configuration_data_audit_path }}"
         - "{{ openbao_configuration_data_log_path }}"
         - "{{ openbao_configuration_tls_path }}"
+
+    - name: Deploy TLS Certificate (Public Key)
+      when: openbao_configuration_tls_cert_content | length > 0
+      ansible.builtin.copy:
+        content: "{{ openbao_configuration_tls_cert_content }}"
+        dest: "{{ openbao_configuration_tls_cert_file }}"
+        mode: "0644"
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+      notify: restart_cluster
+
+    - name: Deploy TLS Private Key
+      when: openbao_configuration_tls_key_content | length > 0
+      ansible.builtin.copy:
+        content: "{{ openbao_configuration_tls_key_content }}"
+        dest: "{{ openbao_configuration_tls_key_file }}"
+        mode: "0600"
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+      diff: false
+      notify: restart_cluster
+
+    - name: Deploy TLS Client CA Certificate
+      when: openbao_configuration_tls_client_ca_content | length > 0
+      ansible.builtin.copy:
+        content: "{{ openbao_configuration_tls_client_ca_content }}"
+        dest: "{{ openbao_configuration_tls_client_ca_file }}"
+        mode: "0644"
+        owner: "{{ openbao_user_name }}"
+        group: "{{ openbao_user_group_name }}"
+      notify: restart_cluster
+
     - name: Add OpenBao configuration file
       ansible.builtin.template:
         src: "{{ openbao_configuration_config_template_file_path }}"

@@ -138,22 +138,79 @@ argument_specs:
       openbao_configuration_tls_path:
         type: str
         description: Directory for TLS certificates and keys.
-        default: "{{ openbao_configuration_base_path }}/tls"
+        default: "{{ openbao_configuration_data_path }}/tls"
+
+      openbao_configuration_tls_cert_content:
+        type: str
+        description: PEM content for the server certificate rendered to disk.
+        default: >-
+          {{ lookup('file', openbao_configuration_tls_cert_file_src)
+          if openbao_configuration_tls_cert_file_src | length > 0
+          else lookup('ansible.builtin.env', 'TLS_SERVER_CERT')
+          }}
 
       openbao_configuration_tls_cert_file:
         type: str
         description: Server certificate file path.
-        default: "{{ openbao_configuration_tls_path }}/server.crt"
+        default: >-
+          {{ openbao_configuration_tls_path ~ '/' ~
+          openbao_configuration_tls_cert_file_src | basename
+          if openbao_configuration_tls_cert_file_src | length > 0
+          else openbao_configuration_tls_path ~ '/server.crt'
+          }}
+
+      openbao_configuration_tls_cert_file_src:
+        type: str
+        description: Optional local source file for the server certificate.
+        default: ""
+
+      openbao_configuration_tls_key_content:
+        type: str
+        description: PEM content for the server private key rendered to disk.
+        default: >-
+          {{ lookup('file', openbao_configuration_tls_key_file_src)
+          if openbao_configuration_tls_key_file_src | length > 0
+          else lookup('ansible.builtin.env', 'TLS_SERVER_KEY')
+          }}
 
       openbao_configuration_tls_key_file:
         type: str
         description: Server private key file path.
-        default: "{{ openbao_configuration_tls_path }}/server.key"
+        default: >-
+          {{ openbao_configuration_tls_path ~ '/' ~
+          openbao_configuration_tls_key_file_src | basename
+          if openbao_configuration_tls_key_file_src | length > 0
+          else openbao_configuration_tls_path ~ '/server.key'
+          }}
 
-      openbao_configuration_tls_ca_file:
+      openbao_configuration_tls_key_file_src:
         type: str
-        description: CA certificate file path.
-        default: "{{ openbao_configuration_tls_path }}/ca.crt"
+        description: Optional local source file for the server private key.
+        default: ""
+
+      openbao_configuration_tls_client_ca_content:
+        type: str
+        description: PEM content for the client CA bundle rendered to disk.
+        default: >-
+          {{ lookup('file', openbao_configuration_tls_client_ca_file_src)
+          if openbao_configuration_tls_client_ca_file_src | length > 0
+          else lookup('ansible.builtin.env', 'TLS_CLIENT_CA_CERT')
+          }}
+
+      openbao_configuration_tls_client_ca_file:
+        type: str
+        description: Client CA certificate file path.
+        default: >-
+          {{ openbao_configuration_tls_path ~ '/' ~
+          openbao_configuration_tls_client_ca_file_src | basename
+          if openbao_configuration_tls_client_ca_file_src | length > 0
+          else openbao_configuration_tls_path ~ '/ca.crt'
+          }}
+
+      openbao_configuration_tls_client_ca_file_src:
+        type: str
+        description: Optional local source file for the client CA certificate.
+        default: ""
 
       # Data Storage Paths
       openbao_configuration_data_storage_raft_path:
@@ -196,7 +253,7 @@ argument_specs:
       openbao_configuration_api_addr:
         type: str
         description: External URL advertised for the API endpoint.
-        default: "http://{{ inventory_hostname ~ ':' ~ openbao_configuration_api_port }}"
+        default: "https://{{ inventory_hostname ~ ':' ~ openbao_configuration_api_port }}"
 
       openbao_configuration_cluster_port:
         type: int
@@ -206,7 +263,7 @@ argument_specs:
       openbao_configuration_cluster_addr:
         type: str
         description: URL advertised for clustering with other nodes.
-        default: "http://{{ inventory_hostname ~ ':' ~ openbao_configuration_cluster_port }}"
+        default: "https://{{ inventory_hostname ~ ':' ~ openbao_configuration_cluster_port }}"
 
       # Seal Configuration Backends
       openbao_configuration_seal_static:

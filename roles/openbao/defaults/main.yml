@@ -45,13 +45,43 @@ openbao_configuration_config_template_file_path: "openbao.hcl.j2"
 openbao_configuration_environment_file_name: "openbao.env"
 openbao_configuration_environment_template_file_path: "openbao.env.j2"
 openbao_configuration_config_file_name: "openbao.hcl"
-openbao_configuration_tls_path: "{{ openbao_configuration_base_path }}/tls"
+openbao_configuration_tls_path: "{{ openbao_configuration_data_path }}/tls"
+openbao_configuration_tls_cert_content: >-
+  {{ lookup('file', openbao_configuration_tls_cert_file_src)
+  if openbao_configuration_tls_cert_file_src | length > 0
+  else lookup('ansible.builtin.env', 'TLS_SERVER_CERT')
+  }}
 openbao_configuration_tls_cert_file: >-
-  {{ openbao_configuration_tls_path }}/server.crt
+  {{ openbao_configuration_tls_path ~ '/' ~
+  openbao_configuration_tls_cert_file_src | basename
+  if openbao_configuration_tls_cert_file_src | length > 0
+  else openbao_configuration_tls_path ~ '/server.crt'
+  }}
+openbao_configuration_tls_cert_file_src: ''
+openbao_configuration_tls_key_content: >-
+  {{ lookup('file', openbao_configuration_tls_key_file_src)
+  if openbao_configuration_tls_key_file_src | length > 0
+  else lookup('ansible.builtin.env', 'TLS_SERVER_KEY')
+  }}
 openbao_configuration_tls_key_file: >-
-  {{ openbao_configuration_tls_path }}/server.key
-openbao_configuration_tls_ca_file: >-
-  {{ openbao_configuration_tls_path }}/ca.crt
+  {{ openbao_configuration_tls_path ~ '/' ~
+  openbao_configuration_tls_key_file_src | basename
+  if openbao_configuration_tls_key_file_src | length > 0
+  else openbao_configuration_tls_path ~ '/server.key'
+  }}
+openbao_configuration_tls_key_file_src: ''
+openbao_configuration_tls_client_ca_content: >-
+  {{ lookup('file', openbao_configuration_tls_client_ca_file_src)
+  if openbao_configuration_tls_client_ca_file_src | length > 0
+  else lookup('ansible.builtin.env', 'TLS_CLIENT_CA_CERT')
+  }}
+openbao_configuration_tls_client_ca_file: >-
+  {{ openbao_configuration_tls_path ~ '/' ~
+  openbao_configuration_tls_client_ca_file_src | basename
+  if openbao_configuration_tls_client_ca_file_src | length > 0
+  else openbao_configuration_tls_path ~ '/ca.crt'
+  }}
+openbao_configuration_tls_client_ca_file_src: ''
 openbao_configuration_data_storage_raft_path: >-
   {{ openbao_configuration_data_path }}/data
 openbao_configuration_data_audit_path: >-
@@ -64,93 +94,93 @@ openbao_configuration_data_log_path: >-
   {{ openbao_configuration_data_path }}/log
 openbao_configuration_api_port: 8200
 openbao_configuration_api_addr: >-
-  http://{{ inventory_hostname ~ ':' ~ openbao_configuration_api_port }}
+  https://{{ inventory_hostname ~ ':' ~ openbao_configuration_api_port }}
 openbao_configuration_cluster_port: 8201
 openbao_configuration_cluster_addr: >-
-  http://{{ inventory_hostname ~ ':' ~ openbao_configuration_cluster_port }}
+  https://{{ inventory_hostname ~ ':' ~ openbao_configuration_cluster_port }}
 
 # Optional seal configuration blocks. Define only the backend you want to use, and
 # keep each dict empty unless it is actively configured.
-openbao_configuration_seal_static:
-  # current_key_id: ""
-  # current_key: ""
+openbao_configuration_seal_static: {}
+#  current_key_id: ""
+#  current_key: ""
 
-openbao_configuration_seal_awskms:
-  # region: "us-east-1"
-  # access_key: ""
-  # secret_key: ""
-  # session_token: ""
-  # kms_key_id: ""
-  # endpoint: ""
-  # iam_endpoint: ""
-  # sts_endpoint: ""
-  # role: ""
-  # disable_renewal: false
-  # lease_path: ""
+openbao_configuration_seal_awskms: {}
+#  region: "us-east-1"
+#  access_key: ""
+#  secret_key: ""
+#  session_token: ""
+#  kms_key_id: ""
+#  endpoint: ""
+#  iam_endpoint: ""
+#  sts_endpoint: ""
+#  role: ""
+#  disable_renewal: false
+#  lease_path: ""
 
-openbao_configuration_seal_azurekeyvault:
-  # tenant_id: ""
-  # client_id: ""
-  # client_secret: ""
-  # key_name: ""
-  # key_vault_name: ""
-  # environment: ""
-  # vault_addr: ""
-  # disable_renewal: false
-  # lease_path: ""
+openbao_configuration_seal_azurekeyvault: {}
+#  tenant_id: ""
+#  client_id: ""
+#  client_secret: ""
+#  key_name: ""
+#  key_vault_name: ""
+#  environment: ""
+#  vault_addr: ""
+#  disable_renewal: false
+#  lease_path: ""
 
-openbao_configuration_seal_gcpckms:
-  # project: ""
-  # region: ""
-  # key_ring: ""
-  # crypto_key: ""
-  # credentials: ""
-  # disable_renewal: false
-  # lease_path: ""
+openbao_configuration_seal_gcpckms: {}
+#  project: ""
+#  region: ""
+#  key_ring: ""
+#  crypto_key: ""
+#  credentials: ""
+#  disable_renewal: false
+#  lease_path: ""
 
-openbao_configuration_seal_transit:
-  # address: ""
-  # token: ""
-  # disable_renewal: false
-  # mount_path: ""
-  # namespace: ""
-  # tls_skip_verify: false
-  # lease_path: ""
+openbao_configuration_seal_transit: {}
+#  address: ""
+#  token: ""
+#  disable_renewal: false
+#  mount_path: ""
+#  namespace: ""
+#  tls_skip_verify: false
+#  lease_path: ""
 
-openbao_configuration_seal_pkcs11:
-  # lib: ""
-  # slot: ""
-  # pin: ""
-  # token_label: ""
-  # key_label: ""
-  # key_id: ""
-  # mechanism: ""
-  # disable_renewal: false
-  # lease_path: ""
+openbao_configuration_seal_pkcs11: {}
+#  lib: ""
+#  slot: ""
+#  pin: ""
+#  token_label: ""
+#  key_label: ""
+#  key_id: ""
+#  mechanism: ""
+#  disable_renewal: false
+#  lease_path: ""
 
-openbao_configuration_seal_ocikms:
-  # compartment_id: ""
-  # key_id: ""
-  # crypto_endpoint: ""
-  # management_endpoint: ""
-  # auth_type: ""
-  # disable_renewal: false
-  # lease_path: ""
+openbao_configuration_seal_ocikms: {}
+#  compartment_id: ""
+#  key_id: ""
+#  crypto_endpoint: ""
+#  management_endpoint: ""
+#  auth_type: ""
+#  disable_renewal: false
+#  lease_path: ""
 
-openbao_configuration_seal_alicloudkms:
-  # region: ""
-  # access_key: ""
-  # secret_key: ""
-  # kms_key_id: ""
-  # endpoint: ""
-  # role_arn: ""
-  # disable_renewal: false
-  # lease_path: ""
+openbao_configuration_seal_alicloudkms: {}
+#  region: ""
+#  access_key: ""
+#  secret_key: ""
+#  kms_key_id: ""
+#  endpoint: ""
+#  role_arn: ""
+#  disable_renewal: false
+#  lease_path: ""
 
-openbao_configuration_seal_aead:
-  # type: ""
-  # key_name: ""
-  # key_id: ""
-  # namespace: ""
-  # disabled: false
-  # lease_path: ""
+openbao_configuration_seal_aead: {}
+#  type: ""
+#  key_name: ""
+#  key_id: ""
+#  namespace: ""
+#  disabled: false
+#  lease_path: ""

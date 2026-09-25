@@ -1,12 +1,17 @@
 # {{ ansible_managed }}
-
+# test
 ui = true
 
 log_file = "{{ openbao_configuration_data_log_path }}/openbao.log"
 
 listener "tcp" {
   address = "0.0.0.0:8200"
-  tls_disable = "true"
+  tls_cert_file = "{{ openbao_configuration_tls_cert_file }}"
+  tls_key_file  = "{{ openbao_configuration_tls_key_file }}"
+{% if openbao_configuration_tls_client_ca_content | length > 0 %}
+  tls_client_ca_file = "{{ openbao_configuration_tls_client_ca_file }}"
+{% endif %}
+
   telemetry {
     unauthenticated_metrics_access = "true"
   }
@@ -27,7 +32,10 @@ storage "raft" {
 {% for node in ansible_play_hosts_all %}
 {% if node != inventory_hostname %}
   retry_join {
-      leader_api_addr = "http://{{ node }}:{{ openbao_configuration_api_port }}"
+      leader_api_addr = "https://{{ node }}:{{ openbao_configuration_api_port }}"
+{% if openbao_configuration_tls_client_ca_content | length > 0 %}
+      leader_ca_cert_file  = "{{ openbao_configuration_tls_client_ca_file }}"
+{% endif %}
   }
 {% endif %}
 {% endfor %}
