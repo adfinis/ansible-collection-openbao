@@ -1,0 +1,17 @@
+[Unit]
+Description={{ openbao_backup_snapshot_systemd_timer_description }}
+
+[Service]
+Type=oneshot
+Environment=BAO_ADDR=unix://{{ openbao_backup_snapshot_listener_socket }}
+{% if openbao_backup_ca_certs_file | length > 0 -%}
+Environment=BAO_CACERT={{ openbao_backup_ca_certs_file }}
+{% elif openbao_backup_ca_path | length > 0 -%}
+Environment=BAO_CAPATH={{ openbao_backup_ca_path }}
+{% endif -%}
+# ExecStart=/bin/sh -c '{{ openbao_backup_bin_path }}/bao operator raft snapshot save "{{ openbao_backup_snapshot_dir }}/{{ openbao_backup_snapshot_file_name }}"'
+ExecStart=/bin/sh -c '{{ openbao_backup_snapshot_script_path }}'
+ExecStartPost=/bin/sh -c 'find {{ openbao_backup_snapshot_dir }}/* -{{ openbao_backup_snapshot_retention_find_mode }} {{ openbao_backup_snapshot_retention_time }} -exec {{ openbao_backup_snapshot_retention_find_action }} {} \;'
+
+[Install]
+WantedBy=multi-user.target

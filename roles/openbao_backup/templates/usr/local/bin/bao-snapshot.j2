@@ -1,0 +1,9 @@
+#!/bin/sh
+#
+# Take OpenBao Raft integrated storage snapshots on the leader
+# See also:
+#  - /etc/openbao/bao_snapshot_agent.hcl
+#  - /etc/systemd/system/bao-agent.service
+
+{{ openbao_backup_bin_path }}/bao operator raft snapshot save "{{ openbao_backup_snapshot_dir }}/{{ openbao_backup_snapshot_file_name }}"
+/usr/local/bin/s3cmd --config={{ openbao_backup_snapshot_config_dir }}/.s3cfg sync {{ openbao_backup_snapshot_dir }}/* s3://{{ openbao_backup_s3_host_bucket }}

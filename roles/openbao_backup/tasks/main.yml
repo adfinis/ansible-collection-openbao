@@ -1,0 +1,121 @@
+---
+
+- name: Add OpenBao snapshot agent user group
+  become: true
+  ansible.builtin.group:
+    name: "{{ openbao_backup_group }}"
+    state: present
+
+- name: Add OpenBao snapshot agent user
+  become: true
+  ansible.builtin.user:
+    name: "{{ openbao_backup_user }}"
+    comment: "OpenBao user"
+    group: "{{ openbao_backup_group }}"
+    system: true
+
+- name: Ensure OpenBao snapshot config dir
+  become: true
+  ansible.builtin.file:
+    path: '{{ openbao_backup_snapshot_config_dir }}'
+    state: directory
+    mode: '0700'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+
+- name: Ensure OpenBao pid dir
+  become: true
+  ansible.builtin.file:
+    path: '{{ openbao_backup_snapshot_pid_dir }}'
+    state: directory
+    mode: '0700'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+
+- name: Write AppRole role id
+  become: true
+  ansible.builtin.copy:
+    dest: '{{ openbao_backup_snapshot_approle_roleid_file }}'
+    content: '{{ openbao_backup_raft_bck_role_id }}'
+    mode: '0640'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+
+- name: Write AppRole secret id
+  no_log: true
+  become: true
+  ansible.builtin.copy:
+    dest: '{{ openbao_backup_snapshot_approle_secretid_file }}'
+    content: '{{ openbao_backup_raft_bck_secret_id }}'
+    mode: '0640'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+
+- name: Write snapshot agent configuration file
+  become: true
+  ansible.builtin.template:
+    src: '{{ openbao_backup_snapshot_agent_config_file_template }}'
+    dest: '{{ openbao_backup_snapshot_agent_config_file }}'
+    mode: '0640'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+
+- name: s3cmd install
+  ansible.builtin.import_tasks: install_s3cmd.yml
+
+# OpenBao backup agent systemd config
+- name: Create systemd service file for backup agent
+  become: true
+  ansible.builtin.template:
+    src: 'templates/etc/systemd/system/{{ openbao_backup_snapshot_systemd_service_name }}.j2'
+    dest: '{{ openbao_backup_snapshot_systemd_dir }}/{{ openbao_backup_snapshot_systemd_service_name }}'
+    mode: '0644'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+  notify:
+    - openbao_backup_snapshot_systemd_service_daemon_reload
+
+- name: Start and enable systemd service
+  become: true
+  ansible.builtin.service:
+    name: '{{ openbao_backup_snapshot_systemd_service_name }}'
+    enabled: true
+    state: started
+
+# Timer systemd config
+- name: Create systemd timer service file for snapshot service
+  become: true
+  ansible.builtin.template:
+    src: 'templates/etc/systemd/system/{{ openbao_backup_snapshot_systemd_timer_service_name }}.j2'
+    dest: '{{ openbao_backup_snapshot_systemd_dir }}/{{ openbao_backup_snapshot_systemd_timer_service_name }}'
+    mode: '0644'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+  notify:
+    - openbao_backup_snapshot_systemd_timer_service_daemon_reload
+
+- name: Create systemd timer file for snapshot service
+  become: true
+  ansible.builtin.template:
+    src: 'templates/etc/systemd/system/{{ openbao_backup_snapshot_systemd_timer_name }}.j2'
+    dest: '{{ openbao_backup_snapshot_systemd_dir }}/{{ openbao_backup_snapshot_systemd_timer_name }}'
+    mode: '0644'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+  notify:
+    - openbao_backup_snapshot_systemd_timer_daemon_reload
+
+- name: Ensure snapshot directory exists
+  become: true
+  ansible.builtin.file:
+    path: '{{ openbao_backup_snapshot_dir }}'
+    state: directory
+    mode: '0755'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+
+- name: Start systemd timer
+  become: true
+  ansible.builtin.service:
+    name: '{{ openbao_backup_snapshot_systemd_timer_name }}'
+    state: started
