@@ -3,20 +3,20 @@
 - name: Systemd backup agent daemon reload
   become: true
   ansible.builtin.systemd_service:
-    name: "{{ openbao_backup_snapshot_systemd_service_name }}"
+    name: "{{ openbao_backup_agent_systemd_service_name }}"
     daemon_reload: true
-  listen: openbao_backup_snapshot_systemd_service_daemon_reload
+  listen: openbao_backup_agent_systemd_service_daemon_reload
 
 - name: Systemd snapshot agent timer reload
   become: true
   ansible.builtin.systemd_service:
-    name: "{{ openbao_backup_snapshot_systemd_timer_name }}"
+    name: "{{ openbao_backup_raft_snapshot_systemd_timer_name }}"
     daemon_reload: true
-  listen: openbao_backup_snapshot_systemd_timer_daemon_reload
+  listen: openbao_backup_raft_snapshot_systemd_timer_daemon_reload
 
 - name: Systemd snapshot agent daemon reload
   become: true
   ansible.builtin.systemd_service:
-    name: "{{ openbao_backup_snapshot_systemd_timer_service_name }}"
+    name: "{{ openbao_backup_raft_snapshot_systemd_timer_service_name }}"
     daemon_reload: true
-  listen: openbao_backup_snapshot_systemd_timer_service_daemon_reload
+  listen: openbao_backup_raft_snapshot_systemd_timer_service_daemon_reload

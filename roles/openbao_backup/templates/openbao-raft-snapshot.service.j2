@@ -1,0 +1,12 @@
+[Unit]
+Description=Service for OpenBao integrated storage snapshot
+
+[Service]
+Type=oneshot
+Environment=BAO_ADDR=unix://{{ openbao_backup_agent_config_listener_socket }}
+ExecCondition=/usr/bin/curl --fail --silent --max-time 1 --show-error --unix-socket {{ openbao_backup_agent_config_listener_socket }} http://localhost/v1/sys/health
+ExecStart=/bin/sh -c '{{ openbao_backup_raft_snapshot_script_path }}'
+ExecStartPost=/bin/sh -c 'find {{ openbao_backup_raft_snapshot_dir }}/* -{{ openbao_backup_raft_snapshot_retention_find_mode }} {{ openbao_backup_raft_snapshot_retention_time }} -exec {{ openbao_backup_raft_snapshot_retention_find_action }} {} \;'
+
+[Install]
+WantedBy=multi-user.target

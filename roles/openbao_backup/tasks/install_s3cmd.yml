@@ -2,15 +2,19 @@
 
 - name: Install pip
   become: true
-  ansible.builtin.dnf:
+  ansible.builtin.package:
     name: python3-pip
     state: present
 
 - name: Install s3cmd
   become: true
-  ansible.builtin.shell: pip3 install s3cmd
+  ansible.builtin.pip:
+    name: s3cmd
+    state: present
+    executable: pip3
 
-- name: Copy CA certificate
+- name: Copy s3 CA certificate
+  when: openbao_backup_s3_ca_certs_content | length > 0
   become: true
   ansible.builtin.copy:
     content: "{{ openbao_backup_s3_ca_certs_content }}"
@@ -27,12 +31,3 @@
     owner: "{{ openbao_backup_user }}"
     group: "{{ openbao_backup_group }}"
     mode: "0600"
-
-- name: Copy OpenBao snapshot script
-  become: true
-  ansible.builtin.template:
-    src: "{{ openbao_backup_snapshot_script_template }}"
-    dest: "{{ openbao_backup_snapshot_script_path }}"
-    owner: "{{ openbao_backup_user }}"
-    group: "{{ openbao_backup_group }}"
-    mode: "0700"

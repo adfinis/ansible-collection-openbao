@@ -5,13 +5,13 @@ After=network-online.target
 
 [Service]
 Restart=on-failure
-ExecStart={{ openbao_backup_bin_path }}/bao agent -config={{ openbao_backup_snapshot_agent_config_file }}
+ExecStart={{ openbao_backup_bin_path }}/bao agent -config={{ openbao_backup_agent_config_file }}
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGINT
 User={{ openbao_backup_user }}
 Group={{ openbao_backup_group }}
 RuntimeDirectoryMode=0750
-RuntimeDirectory={{ openbao_backup_snapshot_run_dir }}
+RuntimeDirectory={{ openbao_backup_agent_config_run_dir }}
 
 [Install]
 WantedBy=multi-user.target

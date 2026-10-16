@@ -1,6 +1,6 @@
 galaxy_info:
   author: Simon Nussbaum
-  description: Role for installing OpenBao backup
+  description: Configure scheduled OpenBao Raft snapshots and S3 backups
   company: Adfinis AG
 
   license: AGPL-3.0-or-later
@@ -12,6 +12,8 @@ galaxy_info:
     - debian
     - redhat
     - openbao
+    - backup
+    - s3
 
 collections:
   - ansible.posix
