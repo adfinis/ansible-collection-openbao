@@ -1,0 +1,33 @@
+---
+
+- name: Install pip
+  become: true
+  ansible.builtin.package:
+    name: python3-pip
+    state: present
+
+- name: Install s3cmd
+  become: true
+  ansible.builtin.pip:
+    name: s3cmd
+    state: present
+    executable: pip3
+
+- name: Copy s3 CA certificate
+  when: openbao_backup_s3_ca_certs_content | length > 0
+  become: true
+  ansible.builtin.copy:
+    content: "{{ openbao_backup_s3_ca_certs_content }}"
+    dest: "{{ openbao_backup_s3_ca_certs_file }}"
+    mode: "0644"
+    owner: "{{ openbao_backup_user }}"
+    group: "{{ openbao_backup_group }}"
+
+- name: Configure s3cmd
+  become: true
+  ansible.builtin.template:
+    src: "templates/.s3cfg.j2"
+    dest: "{{ openbao_backup_s3_config_path }}/.s3cfg"
+    owner: "{{ openbao_backup_user }}"
+    group: "{{ openbao_backup_group }}"
+    mode: "0600"

@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# Take OpenBao Raft integrated storage snapshots on the leader
+# See also:
+#  - {{ openbao_backup_agent_systemd_dir }}/{{ openbao_backup_agent_systemd_service_name }}
+#  - {{ openbao_backup_agent_config_dir }}/{{ openbao_backup_agent_config_file }}
+#  - {{ openbao_backup_raft_snapshot_systemd_dir }}/{{ openbao_backup_raft_snapshot_systemd_timer_service_name }}
+#  - {{ openbao_backup_raft_snapshot_systemd_dir }}/{{ openbao_backup_raft_snapshot_systemd_timer_name }}
+
+{{ openbao_backup_bin_path }}/bao operator raft snapshot save "{{ openbao_backup_raft_snapshot_dir }}/{{ openbao_backup_raft_snapshot_file_name }}"
+{% if openbao_backup_s3_sync | bool -%}
+/usr/local/bin/s3cmd --config={{ openbao_backup_s3_config_dir }}/.s3cfg sync {{ openbao_backup_raft_snapshot_dir }}/* s3://{{ openbao_backup_s3_host_bucket }}
+{% endif -%}
