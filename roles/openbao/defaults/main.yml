@@ -44,11 +44,11 @@ openbao_configuration_config_path: "{{ openbao_configuration_base_path }}"
 openbao_configuration_config_template_content: >-
   {{ lookup('file', openbao_configuration_config_template_file_path) }}
 openbao_configuration_config_file_name: "openbao.hcl"
-openbao_configuration_config_template_file_path: "openbao.hcl.j2"
+openbao_configuration_config_template_file_path: "templates/openbao.hcl.j2"
 openbao_configuration_environment_template_content: >-
   {{ lookup('file', openbao_configuration_environment_template_file_path) }}
 openbao_configuration_environment_file_name: "openbao.env"
-openbao_configuration_environment_template_file_path: "openbao.env.j2"
+openbao_configuration_environment_template_file_path: "templates/openbao.env.j2"
 openbao_configuration_tls_path: "{{ openbao_configuration_data_path }}/tls"
 openbao_configuration_tls_cert_content: >-
   {{ lookup('file', openbao_configuration_tls_cert_file_src)
@@ -93,7 +93,7 @@ openbao_configuration_data_audit_path: >-
 openbao_configuration_data_systemd_path: >-
   {{ openbao_configuration_data_path }}/systemd
 openbao_configuration_data_systemd_unit_name: "openbao.service"
-openbao_configuration_data_systemd_template_file_path: "openbao.service.j2"
+openbao_configuration_data_systemd_template_file_path: "templates/openbao.service.j2"
 openbao_configuration_data_log_path: >-
   {{ openbao_configuration_data_path }}/log
 openbao_configuration_api_port: 8200

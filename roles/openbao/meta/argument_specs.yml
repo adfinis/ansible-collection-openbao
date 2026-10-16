@@ -13,7 +13,7 @@ argument_specs:
       openbao_version:
         type: str
         description: OpenBao version to install or match.
-        default: "2.6.1"
+        default: "2.7.1"
 
       openbao_binary_installation:
         type: bool
@@ -127,7 +127,7 @@ argument_specs:
       openbao_configuration_config_template_file_path:
         type: str
         description: Path to the HCL config template file.
-        default: "openbao.hcl.j2"
+        default: "templates/openbao.hcl.j2"
 
       openbao_configuration_environment_template_content:
         type: str
@@ -142,7 +142,7 @@ argument_specs:
       openbao_configuration_environment_template_file_path:
         type: str
         description: Path to the environment template file.
-        default: "openbao.env.j2"
+        default: "templates/openbao.env.j2"
 
       # TLS Configuration
       openbao_configuration_tls_path:
@@ -252,7 +252,7 @@ argument_specs:
       openbao_configuration_data_systemd_template_file_path:
         type: str
         description: Jinja2 template file for systemd service unit.
-        default: "openbao.service.j2"
+        default: "templates/openbao.service.j2"
 
       # API and Cluster Configuration
       openbao_configuration_api_port:

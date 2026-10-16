@@ -1,5 +1,4 @@
-Role: openbao
-===============
+# Role: openbao
 
 Installs and configures OpenBao as a cluster-ready service on target hosts. It supports:
 
@@ -8,17 +7,17 @@ Installs and configures OpenBao as a cluster-ready service on target hosts. It s
 - configuration of the runtime paths, TLS settings, API/cluster addresses, and Raft storage
 - optional auto-unseal through seal configuration
 
-Requirements
-------------
+## Requirements
 
 - Ansible on the managed host
 - `systemd` for service management
 - package manager access for repository installs or the ability to download the OpenBao binary distribution
 
-Role Variables
---------------
+## Role Variables
 
 The role supports a broad set of variables for installation, runtime paths, TLS material, seal configuration, and repository setup. The defaults below reflect the current values in the role.
+
+### Installation and service user
 
 | Variable | Default | Description |
 | -------- | ------- | ----------- |
@@ -29,6 +28,11 @@ The role supports a broad set of variables for installation, runtime paths, TLS 
 | `openbao_user_home` | `"{{ openbao_configuration_base_path }}"` | User home directory. |
 | `openbao_user_home_creation` | `false` | Create the user home directory. |
 | `openbao_service_disabled` | `false` | Disable the OpenBao service at startup. |
+
+### Binary installation
+
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
 | `openbao_binary_installation` | `false` | Use the binary distribution flow instead of the OS package repository. |
 | `openbao_binary_architecture` | `{{ 'amd64' if ansible_facts.architecture == 'x86_64' else ansible_facts.architecture }}` | CPU architecture used for binary selection. |
 | `openbao_binary_package_name` | `{{ 'openbao_' ~ openbao_version ~ '_linux_' ~ openbao_binary_architecture ~ '.tar.gz' }}` | Archive name for the released binary package. |
@@ -38,16 +42,20 @@ The role supports a broad set of variables for installation, runtime paths, TLS 
 | `openbao_binary_package_gpg_package_name` | `"gpg"` | Package required for GPG verification. |
 | `openbao_binary_package_gpg_public_key_url` | `"https://openbao.org/assets/openbao-gpg-pub-20240618.asc"` | Public GPG key URL used to verify the archive. |
 | `openbao_binary_package_download_gpg_key_url` | `"{{ openbao_binary_package_download_url }}.gpgsig"` | Detached signature URL for the release archive. |
+
+### Configuration paths and TLS
+
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
 | `openbao_configuration_base_path` | `{{ '/etc/openbao' if openbao_binary_installation == false else '/opt/openbao' }}` | Root directory for runtime and configuration files. |
-| `openbao_configuration_data_path` | `"/opt/openbao"` | Base path used for runtime, data, logs, and systemd configuration. |
 | `openbao_configuration_runtime_path` | `"{{ openbao_configuration_base_path }}/bin"` | Directory containing the OpenBao executable. |
 | `openbao_configuration_config_path` | `"{{ openbao_configuration_base_path }}"` | Directory containing the main config and environment files. |
 | `openbao_configuration_config_template_content` | `{{ lookup('file', openbao_configuration_config_template_file_path) }}` | File content loaded from the HCL template path. |
 | `openbao_configuration_config_file_name` | `"openbao.hcl"` | Name of the main HCL configuration file. |
-| `openbao_configuration_config_template_file_path` | `"openbao.hcl.j2"` | Path to the HCL config template file. |
+| `openbao_configuration_config_template_file_path` | `"templates/openbao.hcl.j2"` | Path to the HCL config template file. |
 | `openbao_configuration_environment_template_content` | `{{ lookup('file', openbao_configuration_environment_template_file_path) }}` | File content loaded from the environment template path. |
 | `openbao_configuration_environment_file_name` | `"openbao.env"` | Name of the environment file rendered on the host. |
-| `openbao_configuration_environment_template_file_path` | `"openbao.env.j2"` | Path to the environment template file. |
+| `openbao_configuration_environment_template_file_path` | `"templates/openbao.env.j2"` | Path to the environment template file. |
 | `openbao_configuration_tls_path` | `"{{ openbao_configuration_data_path }}/tls"` | Directory for TLS material. |
 | `openbao_configuration_tls_cert_content` | `{{ lookup('file', openbao_configuration_tls_cert_file_src) if openbao_configuration_tls_cert_file_src \| length > 0 else lookup('ansible.builtin.env', 'TLS_SERVER_CERT') }}` | PEM contents for the server certificate; reads a local file when `*_file_src` is set. |
 | `openbao_configuration_tls_cert_file` | `{{ openbao_configuration_tls_path ~ '/' ~ openbao_configuration_tls_cert_file_src \| basename if openbao_configuration_tls_cert_file_src \| length > 0 else openbao_configuration_tls_path ~ '/server.crt' }}` | Server certificate location on disk. |
@@ -58,16 +66,27 @@ The role supports a broad set of variables for installation, runtime paths, TLS 
 | `openbao_configuration_tls_client_ca_content` | `{{ lookup('file', openbao_configuration_tls_client_ca_file_src) if openbao_configuration_tls_client_ca_file_src \| length > 0 else lookup('ansible.builtin.env', 'TLS_CLIENT_CA_CERT') }}` | PEM contents for the client CA bundle; reads a local file when `*_file_src` is set. |
 | `openbao_configuration_tls_client_ca_file` | `{{ openbao_configuration_tls_path ~ '/' ~ openbao_configuration_tls_client_ca_file_src \| basename if openbao_configuration_tls_client_ca_file_src \| length > 0 else openbao_configuration_tls_path ~ '/ca.crt' }}` | Client CA certificate location on disk. |
 | `openbao_configuration_tls_client_ca_file_src` | `''` | Optional local source file for the client CA certificate. |
+
+### Storage, listeners, and systemd
+
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
+| `openbao_configuration_data_path` | `"/opt/openbao"` | Base path used for runtime, data, logs, and systemd configuration. |
 | `openbao_configuration_data_storage_raft_path` | `"{{ openbao_configuration_data_path }}/data"` | Raft storage directory. |
 | `openbao_configuration_data_audit_path` | `"{{ openbao_configuration_data_path }}/audit"` | Audit log directory. |
 | `openbao_configuration_data_log_path` | `"{{ openbao_configuration_data_path }}/log"` | Log directory. |
 | `openbao_configuration_data_systemd_path` | `"{{ openbao_configuration_data_path }}/systemd"` | Directory for the generated systemd unit file. |
 | `openbao_configuration_data_systemd_unit_name` | `"openbao.service"` | Name of the rendered systemd unit file. |
-| `openbao_configuration_data_systemd_template_file_path` | `"openbao.service.j2"` | Systemd unit template used by the role. |
+| `openbao_configuration_data_systemd_template_file_path` | `"templates/openbao.service.j2"` | Systemd unit template used by the role. |
 | `openbao_configuration_api_port` | `8200` | OpenBao API listener port. |
 | `openbao_configuration_api_addr` | `https://{{ inventory_hostname ~ ':' ~ openbao_configuration_api_port }}` | URL advertised for the API endpoint. |
 | `openbao_configuration_cluster_port` | `8201` | OpenBao cluster listener port. |
 | `openbao_configuration_cluster_addr` | `https://{{ inventory_hostname ~ ':' ~ openbao_configuration_cluster_port }}` | URL advertised for clustering. |
+
+### Seal backends
+
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
 | `openbao_configuration_seal_static` | `{}` | Static seal backend config for testing only. |
 | `openbao_configuration_seal_awskms` | `{}` | AWS KMS seal backend config. |
 | `openbao_configuration_seal_azurekeyvault` | `{}` | Azure Key Vault seal backend config. |
@@ -77,6 +96,11 @@ The role supports a broad set of variables for installation, runtime paths, TLS 
 | `openbao_configuration_seal_ocikms` | `{}` | OCI KMS seal backend config. |
 | `openbao_configuration_seal_alicloudkms` | `{}` | Alibaba Cloud KMS seal backend config. |
 | `openbao_configuration_seal_aead` | `{}` | AEAD seal backend config. |
+
+### Package repositories
+
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
 | `openbao_debian_repository_package_name` | `{{ 'openbao=' ~ openbao_version }}` | Debian package specification used by the Debian repository task. |
 | `openbao_debian_repository_name` | `"openbao"` | Debian repository name. |
 | `openbao_debian_repository_url` | `"https://pkgs.openbao.org/deb/"` | Debian repository URL. |
@@ -96,8 +120,7 @@ The role supports a broad set of variables for installation, runtime paths, TLS 
 | `openbao_redhat_repository_sslcacert` | `"/etc/pki/tls/certs/ca-bundle.crt"` | CA bundle used for RedHat repository SSL verification. |
 | `openbao_redhat_repository_metadata_expire` | `300` | RedHat repository metadata expiration time in seconds. |
 
-Seal configuration
-------------------
+## Seal configuration
 
 The role exposes several `openbao_configuration_seal_*` dictionaries. Only define the backend you want to use and leave the others empty. Supported backends are `static`, `awskms`, `azurekeyvault`, `gcpckms`, `transit`, `pkcs11`, `ocikms`, `alicloudkms`, and `aead`.
 
@@ -124,13 +147,11 @@ Example with the options for the `awskms` seal backend:
 
 Only enable one seal backend in production. See the role defaults for the current structures of the supported backends.
 
-Dependencies
-------------
+## Dependencies
 
 None.
 
-Example Playbook
-----------------
+## Example Playbook
 
     - hosts: openbao
       become: true
@@ -148,8 +169,7 @@ Example Playbook
 
 This example installs OpenBao from the repository, creates the service user, and configures AWS KMS auto-unseal for the cluster.
 
-Example Testlab Setup
----------------------
+## Example Testlab Setup
 
 The following instructions show how to setup a testlab installation on VMs or on bare metal.
 
@@ -309,12 +329,10 @@ The following instructions show how to setup a testlab installation on VMs or on
 >
 >     ansible-playbook -i inventory playbook.yaml
 
-License
--------
+## License
 
 [AGPL-3.0-or-later](../../LICENSE)
 
-Author Information
-------------------
+## Author Information
 
 - Simon Nussbaum <simon.nussbaum@adfinis.com>
