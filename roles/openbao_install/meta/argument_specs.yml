@@ -1,0 +1,220 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# argument spec file for adfinis.openbao.openbao
+
+argument_specs:
+  main:
+    short_description: Installs and configures OpenBao as a cluster-ready service.
+    description:
+      - Manages OpenBao installation and configuration through package repositories or binary distribution.
+      - Supports TLS, Raft storage, and auto-unseal through various seal backends.
+    options:
+      # Version and Installation Type
+      openbao_install_version:
+        type: str
+        description: OpenBao version to install or match.
+        default: "2.6.1"
+
+      openbao_install_binary_installation:
+        type: bool
+        description: Use binary installation instead of package repository.
+        default: false
+
+      # User Configuration
+      openbao_install_user_creation:
+        type: bool
+        description: Create the operating system user for running OpenBao.
+        default: false
+
+      openbao_install_user_name:
+        type: str
+        description: Local OpenBao system user name.
+        default: "openbao"
+
+      openbao_install_user_group_name:
+        type: str
+        description: Local OpenBao system group name.
+        default: "{{ openbao_install_user_name }}"
+
+      openbao_install_user_home:
+        type: str
+        description: User home directory.
+        default: "/home/{{ openbao_install_user_name }}"
+
+      openbao_install_user_home_creation:
+        type: bool
+        description: Create the user home directory.
+        default: false
+
+      # Service Management
+      openbao_install_service_disabled:
+        type: bool
+        description: Disable the OpenBao service.
+        default: false
+
+      # Binary Installation Options
+      openbao_install_binary_architecture:
+        type: str
+        description: CPU architecture for binary selection (amd64, arm64, etc.).
+        default: "{{ 'amd64' if ansible_facts.architecture == 'x86_64' else ansible_facts.architecture }}"
+
+      openbao_install_binary_package_name:
+        type: str
+        description: Binary package filename derived from version and architecture.
+        default: "{{ 'openbao_' ~ openbao_install_version ~ '_linux_' ~ openbao_install_binary_architecture ~ '.tar.gz' }}"
+
+      openbao_install_binary_package_download_directory_url:
+        type: str
+        description: Base URL for OpenBao release artifacts.
+        default: "https://github.com/openbao/openbao/releases/download"
+
+      openbao_install_binary_package_download_url:
+        type: str
+        description: Full URL to download the OpenBao binary distribution.
+        default: "{{ openbao_install_binary_package_download_directory_url ~ '/v' ~ openbao_install_version ~ '/' ~ openbao_install_binary_package_name }}"
+
+      openbao_install_binary_package_gpg_key_verification:
+        type: bool
+        description: Enable GPG verification for downloaded binary.
+        default: true
+
+      openbao_install_binary_package_gpg_package_name:
+        type: str
+        description: Package name required for GPG verification.
+        default: "gpg"
+
+      openbao_install_binary_package_gpg_public_key_url:
+        type: str
+        description: URL to public GPG key for verifying the archive.
+        default: "https://openbao.org/assets/openbao-gpg-pub-20240618.asc"
+
+      openbao_install_binary_package_download_gpg_key_url:
+        type: str
+        description: URL of the detached GPG signature file.
+        default: "{{ openbao_install_binary_package_download_url }}.gpgsig"
+
+      openbao_install_binary_destination_path:
+        type: str
+        description: Destination path for the OpenBao binary installation.
+        default: "/usr/local/bin"
+
+      openbao_install_binary_config_path:
+        type: str
+        description: Directory for service configuration and environment files.
+        default: "/etc/openbao"
+
+      openbao_install_binary_systemd_path:
+        type: str
+        description: Directory for the systemd unit file.
+        default: "/etc/systemd/system"
+
+      openbao_install_binary_systemd_unit_name:
+        type: str
+        description: Name of the systemd service unit file.
+        default: "openbao.service"
+
+      openbao_install_binary_systemd_template_file_path:
+        type: str
+        description: Jinja2 template file for systemd service unit.
+        default: "openbao.service.j2"
+
+      openbao_install_binary_openbao_config_file_name:
+        type: str
+        description: Name of the main HCL configuration file.
+        default: "openbao.hcl"
+
+      openbao_install_binary_systemd_environment_file_name:
+        type: str
+        description: Name of the environment file rendered by the role.
+        default: "openbao.env"
+
+      # Repository Configuration (OS-specific variables)
+      openbao_install_debian_repository_package_name:
+        type: str
+        description: Debian package specification used by the Debian repository task.
+        default: "{{ 'openbao=' ~ openbao_install_version }}"
+
+      openbao_install_debian_repository_name:
+        type: str
+        description: Debian repository name.
+        default: "openbao"
+
+      openbao_install_debian_repository_url:
+        type: str
+        description: Debian repository URL.
+        default: "https://pkgs.openbao.org/deb/"
+
+      openbao_install_debian_repository_components:
+        type: str
+        description: Debian repository components.
+        default: "main"
+
+      openbao_install_debian_repository_suites:
+        type: str
+        description: Debian repository suite.
+        default: "stable"
+
+      openbao_install_debian_repository_types:
+        type: str
+        description: Debian repository type.
+        default: "deb"
+
+      openbao_install_debian_repository_signature:
+        type: str
+        description: Debian repository signing key URL.
+        default: "{{ openbao_install_binary_package_gpg_public_key_url }}"
+
+      openbao_install_redhat_repository_name:
+        type: str
+        description: RedHat repository name.
+        default: "openbao"
+
+      openbao_install_redhat_repository_description:
+        type: str
+        description: RedHat repository description.
+        default: "OpenBao community repository"
+
+      openbao_install_redhat_repository_url:
+        type: str
+        description: RedHat repository base URL.
+        default: "https://pkgs.openbao.org/rpm/$basearch"
+
+      openbao_install_redhat_repository_package_name:
+        type: str
+        description: RedHat package specification used by the RPM repository task.
+        default: "{{ 'openbao-' ~ openbao_install_version ~ '-1' }}"
+
+      openbao_install_redhat_repository_repo_gpgcheck:
+        type: bool
+        description: Enable repository metadata GPG checking for RedHat.
+        default: false
+
+      openbao_install_redhat_repository_gpgcheck:
+        type: bool
+        description: Enable package GPG checking for RedHat.
+        default: true
+
+      openbao_install_redhat_repository_enabled:
+        type: bool
+        description: Enable the RedHat repository.
+        default: true
+
+      openbao_install_redhat_repository_gpgkey:
+        type: str
+        description: RedHat repository GPG key URL.
+        default: "{{ openbao_install_binary_package_gpg_public_key_url }}"
+
+      openbao_install_redhat_repository_sslverify:
+        type: bool
+        description: Verify SSL certificates for RedHat repository downloads.
+        default: true
+
+      openbao_install_redhat_repository_sslcacert:
+        type: str
+        description: CA bundle used for RedHat repository SSL verification.
+        default: "/etc/pki/tls/certs/ca-bundle.crt"
+
+      openbao_install_redhat_repository_metadata_expire:
+        type: int
+        description: RedHat repository metadata expiration time in seconds.
+        default: 300

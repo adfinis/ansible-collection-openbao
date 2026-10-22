@@ -1,0 +1,64 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# defaults file for openbao_install
+
+openbao_install_version: "2.6.1"
+
+openbao_install_user_creation: false
+openbao_install_user_name: "openbao"
+openbao_install_user_group_name: "{{ openbao_install_user_name }}"
+openbao_install_user_home: "/home/{{ openbao_install_user_name }}"
+openbao_install_user_home_creation: false
+
+openbao_install_service_disabled: true
+
+openbao_install_binary_installation: false
+openbao_install_binary_architecture: >-
+  {{ 'amd64'
+  if ansible_facts.architecture == 'x86_64'
+  else ansible_facts.architecture
+  }}
+openbao_install_binary_package_name: >-
+  {{ 'openbao_' ~ openbao_install_version ~ '_linux_'
+  ~ openbao_install_binary_architecture ~ '.tar.gz' }}
+openbao_install_binary_package_download_directory_url: >-
+  https://github.com/openbao/openbao/releases/download
+openbao_install_binary_package_download_url: >-
+  {{ openbao_install_binary_package_download_directory_url ~ '/v' ~ openbao_install_version
+  ~ '/' ~ openbao_install_binary_package_name }}
+openbao_install_binary_package_gpg_key_verification: true
+openbao_install_binary_package_gpg_package_name: "gpg"
+openbao_install_binary_package_gpg_public_key_url: >-
+  https://openbao.org/assets/openbao-gpg-pub-20240618.asc
+openbao_install_binary_package_download_gpg_key_url: >-
+  {{ openbao_install_binary_package_download_url }}.gpgsig
+openbao_install_binary_destination_path: "/usr/local/bin"
+openbao_install_binary_config_path: "/etc/openbao"
+openbao_install_binary_systemd_template_file_path: "templates/openbao.service.j2"
+openbao_install_binary_systemd_unit_name: "openbao"
+openbao_install_binary_systemd_path: "/etc/systemd/system"
+openbao_install_binary_systemd_environment_file_name: "openbao.env"
+openbao_install_binary_openbao_config_file_name: "openbao.hcl"
+
+openbao_install_debian_repository_package_name: "{{ 'openbao=' ~ openbao_install_version }}"
+openbao_install_debian_repository_name: "openbao"
+openbao_install_debian_repository_url: "https://pkgs.openbao.org/deb/"
+openbao_install_debian_repository_components: "main"
+openbao_install_debian_repository_suites: "stable"
+openbao_install_debian_repository_types: "deb"
+openbao_install_debian_repository_signature: >-
+  {{ openbao_install_binary_package_gpg_public_key_url }}
+
+openbao_install_redhat_repository_name: "openbao"
+openbao_install_redhat_repository_description: "OpenBao community repository"
+openbao_install_redhat_repository_url: "https://pkgs.openbao.org/rpm/$basearch"
+openbao_install_redhat_repository_package_name: >-
+  {{ 'openbao-' ~ openbao_install_version ~ '-1' }}
+openbao_install_redhat_repository_repo_gpgcheck: false
+openbao_install_redhat_repository_gpgcheck: true
+openbao_install_redhat_repository_enabled: true
+openbao_install_redhat_repository_gpgkey: >-
+  {{ openbao_install_binary_package_gpg_public_key_url }}
+openbao_install_redhat_repository_sslverify: true
+openbao_install_redhat_repository_sslcacert: "/etc/pki/tls/certs/ca-bundle.crt"
+openbao_install_redhat_repository_metadata_expire: 300
