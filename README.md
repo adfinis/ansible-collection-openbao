@@ -1,6 +1,6 @@
 # Adfinis Openbao Collection
 
-This repository contains the `adfinis.openbao` Ansible Collection. The collection contains roles to install and configure [OpenBao](https://www.openbao.org) clusters on servers.
+This repository contains the `adfinis.openbao` Ansible Collection. The collection contains roles to install and configure [OpenBao](https://www.openbao.org) clusters on servers and to back up OpenBao Raft storage.
 
 Further configuration management that requires access to the OpenBao API and needs authentication is not supported. Please use OpenTofu or similar "state-aware" configuration management tools for this.
 
@@ -20,6 +20,7 @@ which requirements are needed.
 | Role | Description |
 | ---- | ----------- |
 | [`adfinis.openbao.openbao`](./roles/openbao/) | Install and configures OpenBao as a service and prepares a cluster-ready configuration for one or more hosts |
+| [`adfinis.openbao.openbao_backup`](./roles/openbao_backup/) | Configures scheduled OpenBao Raft snapshots and optionally syncs them to S3-compatible storage |
 
 ## Using this collection
 
@@ -81,4 +82,3 @@ See the
 GNU Affero General Public License v3.0 or later.
 
 See [LICENSE](https://www.gnu.org/licenses/agpl-3.0.txt) to see the full text.
-

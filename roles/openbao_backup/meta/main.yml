@@ -1,0 +1,21 @@
+galaxy_info:
+  author: Simon Nussbaum
+  description: Configure scheduled OpenBao Raft snapshots and S3 backups
+  company: Adfinis AG
+
+  license: AGPL-3.0-or-later
+
+  min_ansible_version: "2.14"
+
+  galaxy_tags:
+    - linux
+    - debian
+    - redhat
+    - openbao
+    - backup
+    - s3
+
+collections:
+  - ansible.posix
+
+dependencies: []

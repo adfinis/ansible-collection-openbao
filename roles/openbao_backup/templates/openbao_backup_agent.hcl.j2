@@ -1,0 +1,43 @@
+# OpenBao agent configuration for Raft snapshots
+
+pid_file = "{{ openbao_backup_agent_config_pid_dir }}/{{ openbao_backup_agent_config_pid_file_name }}"
+
+vault {
+  address = "{{ openbao_backup_openbao_api_address }}"
+  {% if openbao_backup_openbao_ca_certs_content | length > 0 -%}
+  ca_cert = "{{ openbao_backup_openbao_ca_certs_file }}"
+  {% elif openbao_backup_openbao_ca_certs_path | length > 0 -%}
+  ca_path = "{{ openbao_backup_openbao_ca_certs_path }}"
+  {% endif -%}
+  {% if openbao_backup_openbao_tls_server_name -%}
+  tls_server_name = "{{ openbao_backup_openbao_tls_server_name }}"
+  {% endif -%}
+  tls_skip_verify = "{{ openbao_backup_openbao_tls_skip_verify | bool | ternary('true', 'false') }}"
+}
+
+api_proxy {
+  # Authenticate all requests automatically with the auto_auth token
+  # https://openbao.org/docs/agent-and-proxy/agent/apiproxy/
+  use_auto_auth_token = true
+}
+
+listener "unix" {
+  # Expose OpenBao Agent API seperately
+  # https://openbao.org/docs/agent-and-proxy/agent/caching/#configuration-listener
+  address = "{{ openbao_backup_agent_config_listener_socket }}"
+  # tls_disable = true
+}
+
+auto_auth {
+  method {
+    # Authenticate with AppRole
+    # https://openbao.org/docs/agent-and-proxy/autoauth/methods/approle/
+    type      = "approle"
+
+    config = {
+      role_id_file_path = "{{ openbao_backup_agent_raft_snapshot_approle_role_id_file }}"
+      secret_id_file_path = "{{ openbao_backup_agent_raft_snapshot_approle_secret_id_file }}"
+      remove_secret_id_file_after_reading = {{ openbao_backup_agent_raft_snapshot_remove_secret_id_file_after_reading | bool | lower }}
+    }
+  }
+}

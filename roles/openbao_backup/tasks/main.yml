@@ -1,0 +1,170 @@
+---
+
+- name: Add OpenBao snapshot agent user group
+  become: true
+  ansible.builtin.group:
+    name: "{{ openbao_backup_group }}"
+    state: present
+
+- name: Add OpenBao snapshot agent user
+  become: true
+  ansible.builtin.user:
+    name: "{{ openbao_backup_user }}"
+    comment: "OpenBao user"
+    group: "{{ openbao_backup_group }}"
+    system: true
+
+- name: Ensure OpenBao agent config dir
+  become: true
+  ansible.builtin.file:
+    path: '{{ openbao_backup_agent_config_dir }}'
+    state: directory
+    mode: '0700'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+
+- name: Ensure OpenBao snapshot config dir
+  become: true
+  ansible.builtin.file:
+    path: '{{ openbao_backup_raft_snapshot_config_dir }}'
+    state: directory
+    mode: '0700'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+
+- name: Ensure OpenBao snapshot dir
+  become: true
+  ansible.builtin.file:
+    path: '{{ openbao_backup_raft_snapshot_dir }}'
+    state: directory
+    mode: '0700'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+
+- name: Ensure OpenBao pid dir
+  become: true
+  ansible.builtin.file:
+    path: '{{ openbao_backup_agent_config_pid_dir }}'
+    state: directory
+    mode: '0700'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+
+- name: Write AppRole role id
+  become: true
+  ansible.builtin.copy:
+    dest: '{{ openbao_backup_agent_raft_snapshot_approle_role_id_file }}'
+    content: '{{ openbao_backup_agent_raft_snapshot_approle_role_id }}'
+    mode: '0640'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+  notify:
+    - openbao_backup_agent_systemd_service_daemon_reload
+
+- name: Write AppRole secret id
+  no_log: true
+  become: true
+  ansible.builtin.copy:
+    dest: '{{ openbao_backup_agent_raft_snapshot_approle_secret_id_file }}'
+    content: '{{ openbao_backup_agent_raft_snapshot_approle_secret_id }}'
+    mode: '0640'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+  notify:
+    - openbao_backup_agent_systemd_service_daemon_reload
+
+- name: Write OpenBao agent configuration file
+  become: true
+  ansible.builtin.template:
+    src: '{{ openbao_backup_agent_config_file_template }}'
+    dest: '{{ openbao_backup_agent_config_file }}'
+    mode: '0640'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+  notify:
+    - openbao_backup_agent_systemd_service_daemon_reload
+
+- name: Install s3cmd
+  when: openbao_backup_s3_sync | bool
+  ansible.builtin.import_tasks: install_s3cmd.yml
+
+# OpenBao backup agent systemd config
+- name: Copy OpenBao CA certificate
+  when: openbao_backup_openbao_ca_certs_content | length > 0
+  become: true
+  ansible.builtin.copy:
+    content: "{{ openbao_backup_openbao_ca_certs_content }}"
+    dest: "{{ openbao_backup_openbao_ca_certs_file }}"
+    mode: "0644"
+    owner: "{{ openbao_backup_user }}"
+    group: "{{ openbao_backup_group }}"
+  notify:
+    - openbao_backup_agent_systemd_service_daemon_reload
+
+- name: Create systemd service file for backup agent
+  become: true
+  ansible.builtin.template:
+    src: '{{ openbao_backup_agent_systemd_service_template }}'
+    dest: >-
+      {{ openbao_backup_agent_systemd_dir ~ '/'
+      ~ openbao_backup_agent_systemd_service_name }}
+    mode: '0644'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+  notify:
+    - openbao_backup_agent_systemd_service_daemon_reload
+
+- name: Start and enable systemd service
+  become: true
+  ansible.builtin.service:
+    name: '{{ openbao_backup_agent_systemd_service_name }}'
+    enabled: true
+    state: started
+
+# Timer systemd config
+- name: Copy OpenBao snapshot script
+  become: true
+  ansible.builtin.template:
+    src: "{{ openbao_backup_raft_snapshot_script_template }}"
+    dest: "{{ openbao_backup_raft_snapshot_script_path }}"
+    owner: "{{ openbao_backup_user }}"
+    group: "{{ openbao_backup_group }}"
+    mode: "0700"
+
+- name: Ensure curl is installed for systemd ExecCondition
+  become: true
+  ansible.builtin.package:
+    name: curl
+    state: present
+
+- name: Create systemd timer service file for snapshot service
+  become: true
+  ansible.builtin.template:
+    src: '{{ openbao_backup_raft_snapshot_systemd_timer_service_template }}'
+    dest: >-
+      {{ openbao_backup_raft_snapshot_systemd_dir ~ '/'
+      ~ openbao_backup_raft_snapshot_systemd_timer_service_name }}
+    mode: '0644'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+  notify:
+    - openbao_backup_raft_snapshot_systemd_timer_service_daemon_reload
+
+- name: Create systemd timer file for snapshot service
+  become: true
+  ansible.builtin.template:
+    src: '{{ openbao_backup_raft_snapshot_systemd_timer_template }}'
+    dest: >-
+      {{ openbao_backup_raft_snapshot_systemd_dir ~ '/'
+      ~ openbao_backup_raft_snapshot_systemd_timer_name }}
+    mode: '0644'
+    owner: '{{ openbao_backup_user }}'
+    group: '{{ openbao_backup_group }}'
+  notify:
+    - openbao_backup_raft_snapshot_systemd_timer_daemon_reload
+
+- name: Start systemd timer
+  become: true
+  ansible.builtin.service:
+    name: '{{ openbao_backup_raft_snapshot_systemd_timer_name }}'
+    state: started
