@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao pre-installation setup
+# ------------------------------------------------------------------------
+# Collects information about installed packages and creates the
+# configured system user and home directory when local user provisioning
+# is enabled.
+
+- name: Collect installed packages information
+  ansible.builtin.package_facts:
+    manager: "auto"
+
+- name: Check if OpenBao package is already installed
+  ansible.builtin.set_fact:
+    openbao_service_configuration_package_already_installed: >-
+      {{
+        true if 'openbao' in ansible_facts.packages else false
+      }}
+
+- name: Check if OpenBao binary is already installed
+  when: not openbao_service_configuration_package_already_installed
+  block:
+    - name: Check if OpenBao binary exists already
+      when: not openbao_service_configuration_package_already_installed
+      ansible.builtin.stat:
+        path: "{{ openbao_service_configuration_openbao_binary_path }}"
+      register: openbao_service_configuration_task_result_stat
+
+    - name: Check currently installed OpenBao version
+      when: openbao_service_configuration_task_result_stat.stat.exists
+      ansible.builtin.command:
+        argv:
+          - "{{ openbao_service_configuration_openbao_binary_path }}"
+          - "-version"
+      changed_when: true
+      register: openbao_service_configuration_task_result_version_check
+
+    - name: Determine installed version of OpenBao
+      when: openbao_service_configuration_task_result_stat.stat.exists
+      ansible.builtin.set_fact:
+        openbao_service_configuration_installed_version: >-
+          {{ openbao_service_configuration_task_result_version_check.stdout
+          | regex_search('v(\d+\.\d+\.\d+)', '\1') | first }}

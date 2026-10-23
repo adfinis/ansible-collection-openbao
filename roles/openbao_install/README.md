@@ -19,7 +19,7 @@ The role supports a broad set of variables for installation, runtime paths, TLS 
 
 | Variable | Default | Description |
 | -------- | ------- | ----------- |
-| `openbao_install_version` | `"2.6.1"` | OpenBao version to install or match. |
+| `openbao_install_openbao_version` | `"2.6.1"` | OpenBao version to install or match. |
 | `openbao_install_user_creation` | `false` | Create the OS user used to run OpenBao. |
 | `openbao_install_user_name` | `"openbao"` | Local OpenBao system user. |
 | `openbao_install_user_group_name` | `"{{ openbao_install_user_name }}"` | Local OpenBao system group. |
@@ -30,7 +30,7 @@ The role supports a broad set of variables for installation, runtime paths, TLS 
 | `openbao_install_binary_architecture` | `{{ 'amd64' if ansible_facts.architecture == 'x86_64' else ansible_facts.architecture }}` | CPU architecture used for binary selection. |
 | `openbao_install_binary_package_name` | `{{ 'openbao_' ~ openbao_version ~ '_linux_' ~ openbao_install_binary_architecture ~ '.tar.gz' }}` | Archive name for the released binary package. |
 | `openbao_install_binary_package_download_directory_url` | `"https://github.com/openbao/openbao/releases/download"` | Base URL for release artifacts. |
-| `openbao_install_binary_package_download_url` | `{{ openbao_install_binary_package_download_directory_url ~ '/v' ~ openbao_install_version ~ '/' ~ openbao_install_binary_package_name }}` | Full URL to the release archive. |
+| `openbao_install_binary_package_download_url` | `{{ openbao_install_binary_package_download_directory_url ~ '/v' ~ openbao_install_openbao_version ~ '/' ~ openbao_install_binary_package_name }}` | Full URL to the release archive. |
 | `openbao_install_binary_package_gpg_key_verification` | `true` | Verify the downloaded binary with GPG. |
 | `openbao_install_binary_package_gpg_package_name` | `"gpg"` | Package required for GPG verification. |
 | `openbao_install_binary_package_gpg_public_key_url` | `"https://openbao.org/assets/openbao-gpg-pub-20240618.asc"` | Public GPG key URL used to verify the archive. |
@@ -42,7 +42,7 @@ The role supports a broad set of variables for installation, runtime paths, TLS 
 | `openbao_install_binary_config_path` | `"/etc/openbao/"` | Directory containing the main config and environment files. |
 | `openbao_install_binary_openbao_config_file_name` | `"openbao.hcl"` | Name of the main HCL configuration file. |
 | `openbao_install_binary_systemd_environment_file_name` | `"openbao.env"` | Name of the environment file rendered on the host. |
-| `openbao_install_debian_repository_package_name` | `{{ 'openbao=' ~ openbao_install_version }}` | Debian package specification used by the Debian repository task. |
+| `openbao_install_debian_repository_package_name` | `{{ 'openbao=' ~ openbao_install_openbao_version }}` | Debian package specification used by the Debian repository task. |
 | `openbao_install_debian_repository_name` | `"openbao"` | Debian repository name. |
 | `openbao_install_debian_repository_url` | `"https://pkgs.openbao.org/deb/"` | Debian repository URL. |
 | `openbao_install_debian_repository_components` | `"main"` | Debian repository components. |
@@ -52,7 +52,7 @@ The role supports a broad set of variables for installation, runtime paths, TLS 
 | `openbao_install_redhat_repository_name` | `"openbao"` | RedHat repository name. |
 | `openbao_install_redhat_repository_description` | `"OpenBao community repository"` | RedHat repository description. |
 | `openbao_install_redhat_repository_url` | `"https://pkgs.openbao.org/rpm/$basearch"` | RedHat repository base URL. |
-| `openbao_install_redhat_repository_package_name` | `{{ 'openbao-' ~ openbao_install_version ~ '-1' }}` | RedHat package specification used by the RPM repository task. |
+| `openbao_install_redhat_repository_package_name` | `{{ 'openbao-' ~ openbao_install_openbao_version ~ '-1' }}` | RedHat package specification used by the RPM repository task. |
 | `openbao_install_redhat_repository_repo_gpgcheck` | `false` | Enable repository metadata GPG checking for RedHat. |
 | `openbao_install_redhat_repository_gpgcheck` | `true` | Enable package GPG checking for RedHat. |
 | `openbao_install_redhat_repository_enabled` | `true` | Enable the RedHat repository. |

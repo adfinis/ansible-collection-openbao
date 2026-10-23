@@ -10,7 +10,7 @@ argument_specs:
       - Supports TLS, Raft storage, and auto-unseal through various seal backends.
     options:
       # Version and Installation Type
-      openbao_install_version:
+      openbao_install_openbao_version:
         type: str
         description: OpenBao version to install or match.
         default: "2.6.1"
@@ -61,7 +61,7 @@ argument_specs:
       openbao_install_binary_package_name:
         type: str
         description: Binary package filename derived from version and architecture.
-        default: "{{ 'openbao_' ~ openbao_install_version ~ '_linux_' ~ openbao_install_binary_architecture ~ '.tar.gz' }}"
+        default: "{{ 'openbao_' ~ openbao_install_openbao_version ~ '_linux_' ~ openbao_install_binary_architecture ~ '.tar.gz' }}"
 
       openbao_install_binary_package_download_directory_url:
         type: str
@@ -71,7 +71,9 @@ argument_specs:
       openbao_install_binary_package_download_url:
         type: str
         description: Full URL to download the OpenBao binary distribution.
-        default: "{{ openbao_install_binary_package_download_directory_url ~ '/v' ~ openbao_install_version ~ '/' ~ openbao_install_binary_package_name }}"
+        default: >
+          {{ openbao_install_binary_package_download_directory_url ~ '/v' ~ openbao_install_openbao_version ~ '/'
+          ~ openbao_install_binary_package_name }}
 
       openbao_install_binary_package_gpg_key_verification:
         type: bool
@@ -132,7 +134,7 @@ argument_specs:
       openbao_install_debian_repository_package_name:
         type: str
         description: Debian package specification used by the Debian repository task.
-        default: "{{ 'openbao=' ~ openbao_install_version }}"
+        default: "{{ 'openbao=' ~ openbao_install_openbao_version }}"
 
       openbao_install_debian_repository_name:
         type: str
@@ -182,7 +184,7 @@ argument_specs:
       openbao_install_redhat_repository_package_name:
         type: str
         description: RedHat package specification used by the RPM repository task.
-        default: "{{ 'openbao-' ~ openbao_install_version ~ '-1' }}"
+        default: "{{ 'openbao-' ~ openbao_install_openbao_version ~ '-1' }}"
 
       openbao_install_redhat_repository_repo_gpgcheck:
         type: bool

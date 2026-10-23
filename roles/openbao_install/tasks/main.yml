@@ -12,24 +12,24 @@
 
 - name: Include OpenBao Debian repository installation tasks
   when:
-    - not openbao_binary_installation
+    - not openbao_install_binary_installation
     - ansible_facts.os_family == 'Debian'
   ansible.builtin.import_tasks: debian_repository_install.yml
   tags: [install, repository_install]
 
 - name: Include OpenBao Redhat repository installation tasks
   when:
-    - not openbao_binary_installation
+    - not openbao_install_binary_installation
     - ansible_facts.os_family == 'RedHat'
   ansible.builtin.import_tasks: redhat_repository_install.yml
   tags: [install, repository_install]
 
 - name: Include OpenBao binary installation prerequisites tasks
-  when: openbao_binary_installation
+  when: openbao_install_binary_installation
   ansible.builtin.import_tasks: binary_install_prerequisites.yml
   tags: [install, binary_install, prerequisites]
 
 - name: Include OpenBao binary installation tasks
-  when: openbao_binary_installation
+  when: openbao_install_binary_installation
   ansible.builtin.import_tasks: binary_install.yml
   tags: [install, binary_install]

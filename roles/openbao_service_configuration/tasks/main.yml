@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao role workflow
+# ------------------------------------------------------------------------
+# Includes the pre-install setup, repository or binary installation,
+# post-install adjustments, and final configuration tasks in the correct
+# order.
+
+- name: Include OpenBao pre-configuration tasks
+  ansible.builtin.import_tasks: prerequisites.yml
+  tags: [configure, prerequisites]
+
+- name: Include OpenBao configuration tasks
+  ansible.builtin.import_tasks: configure.yml
+  tags: [configure]
+
+- name: Include OpenBao post-configuration tasks
+  ansible.builtin.import_tasks: postprocessing.yml
+  tags: [configure, post_install]

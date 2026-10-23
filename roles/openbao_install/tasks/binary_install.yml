@@ -9,32 +9,32 @@
 # runtime directory, creates the systemd unit, and enables the OpenBao
 # service.
 
+- name: Check if OpenBao binary exists already
+  ansible.builtin.stat:
+    path: "{{ openbao_install_binary_destination_path ~ '/bao' }}"
+  register: openbao_install_task_result_stat
+
 - name: Check currently installed OpenBao version
+  when: openbao_install_task_result_stat.stat.exists
   ansible.builtin.command:
     argv:
       - "{{ openbao_install_binary_destination_path ~ '/bao' }}"
       - "-version"
-  failed_when:
-    - openbao_install_task_result_version_check.rc != 0
-    - "'No such file or directory' not in (openbao_install_task_result_version_check.msg | default(''))"
-  changed_when: false
+  changed_when: true
   register: openbao_install_task_result_version_check
 
 - name: Determine installed version of OpenBao
+  when: openbao_install_task_result_stat.stat.exists
   ansible.builtin.set_fact:
     openbao_install_installed_version: >-
       {{ openbao_install_task_result_version_check.stdout
-      | regex_search('v(\d+\.\d+\.\d+)') }}
+      | regex_search('v(\d+\.\d+\.\d+)', '\1') | first }}
 
 - name: Determine whether OpenBao needs installation
   when: openbao_install_task_result_version_check is defined
   ansible.builtin.set_fact:
     openbao_install_needs_install: >-
-      {{
-        openbao_install_task_result_version_check.rc != 0
-        or openbao_install_installed_version != 'v' ~ openbao_install_version
-      }}
-
+      {{ (not openbao_install_task_result_stat.stat.exists) or (openbao_install_installed_version != openbao_install_openbao_version) }}
 - name: Create OpenBao directory
   when: openbao_install_needs_install
   ansible.builtin.file:
@@ -91,7 +91,7 @@
               - "--import"
               - >-
                   {{ openbao_install_task_result_staging_dir.path ~
-                  '/' ~ openbao_install_binary_package_gpg_public_key_file | basename }}
+                  '/' ~ openbao_install_binary_package_gpg_public_key_url | basename }}
           register: openbao_install_task_result_public_gpg_key_import
           failed_when: openbao_install_task_result_public_gpg_key_import.rc != 0
           changed_when: false

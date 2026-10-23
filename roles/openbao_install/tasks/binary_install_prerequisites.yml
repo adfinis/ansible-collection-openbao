@@ -7,12 +7,12 @@
 
 - name: >-
     Make sure required package "gpg" is installed if
-    openbao_binary_package_gpg_key_verification is set
+    openbao_install_binary_package_gpg_key_verification is set
   when:
-    - openbao_binary_package_gpg_key_verification
+    - openbao_install_binary_package_gpg_key_verification
   become: true
   ansible.builtin.package:
-    name: "{{ openbao_binary_package_gpg_package_name }}"
+    name: "{{ openbao_install_binary_package_gpg_package_name }}"
     state: present
     update_cache: true
 
@@ -22,3 +22,15 @@
     name: "tar"
     state: present
     update_cache: true
+
+- name: Ensure OpenBao directory structure
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ openbao_install_user_name }}"
+    group: "{{ openbao_install_user_group_name }}"
+    mode: "0750"
+  loop:
+    - "{{ openbao_install_binary_destination_path }}"
+    - "{{ openbao_install_binary_systemd_path }}"
+    - "{{ openbao_install_binary_config_path }}"
