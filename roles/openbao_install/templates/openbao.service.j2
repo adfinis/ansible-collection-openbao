@@ -5,15 +5,15 @@ Description="OpenBao - A tool for managing secrets"
 Documentation=https://github.com/openbao/openbao/tree/main/website/content/docs
 Requires=network-online.target
 After=network-online.target
-ConditionFileNotEmpty={{ openbao_configuration_config_path }}/{{ openbao_configuration_config_file_name }}
+ConditionFileNotEmpty={{ openbao_install_binary_config_path }}/{{ openbao_install_binary_openbao_config_file_name }}
 StartLimitIntervalSec=60
 StartLimitBurst=3
 
 [Service]
 Type=notify
-EnvironmentFile={{ openbao_configuration_config_path }}/{{ openbao_configuration_environment_file_name }}
-User={{ openbao_user_name }}
-Group={{ openbao_user_group_name }}
+EnvironmentFile={{ openbao_install_binary_config_path }}/{{ openbao_install_binary_systemd_environment_file_name }}
+User={{ openbao_install_user_name }}
+Group={{ openbao_install_user_group_name }}
 ProtectSystem=full
 ProtectHome=read-only
 PrivateTmp=yes
@@ -21,7 +21,7 @@ PrivateDevices=yes
 SecureBits=keep-caps
 CapabilityBoundingSet=CAP_SYSLOG
 NoNewPrivileges=yes
-ExecStart={{ openbao_configuration_runtime_path }}/bao server -config={{ openbao_configuration_config_path }}/{{ openbao_configuration_config_file_name }}
+ExecStart={{ openbao_install_binary_destination_path }}/bao server -config={{ openbao_install_binary_config_path }}/{{ openbao_install_binary_openbao_config_file_name }}
 ExecReload=/bin/kill --signal HUP $MAINPID
 KillMode=process
 KillSignal=SIGINT

@@ -1,0 +1,148 @@
+---
+
+# OpenBao configuration directory
+openbao_backup_agent_config_dir: '/etc/openbao.d'
+# OpenBao for pid file
+openbao_backup_agent_config_pid_file_name: 'openbao-backup-agent.pid'
+# Location of pid file
+openbao_backup_agent_config_pid_dir: '{{ openbao_backup_agent_config_dir }}'
+# Systemd runtime directory
+openbao_backup_agent_config_run_dir: 'openbao-backup-agent'
+# OpenBao agent listener unix socket
+openbao_backup_agent_config_listener_socket: >-
+  {{ openbao_backup_agent_config_dir }}/agent.sock
+
+# OpenBao API address
+openbao_backup_openbao_api_address: 'https://127.0.0.1:8200'
+# Path on the remote host to a directory containing PEM-encoded CA certificates to verify the OpenBao server's SSL certificate
+openbao_backup_openbao_ca_certs_path: ''
+# Path on the local disk to a single PEM-encoded CA certificate to verify the
+# OpenBao server's SSL certificate
+openbao_backup_openbao_ca_certs_file_src: ''
+
+openbao_backup_openbao_ca_certs_content: >-
+  {{ lookup('file', openbao_backup_openbao_ca_certs_file_src)
+  if openbao_backup_openbao_ca_certs_file_src | length > 0
+  else lookup('ansible.builtin.env', 'OPENBAO_BACKUP_BAO_CACERT')
+  }}
+openbao_backup_openbao_ca_certs_file: >-
+  {{ openbao_backup_openbao_ca_certs_path ~ '/' ~
+  openbao_backup_openbao_ca_certs_file_src | basename
+  if openbao_backup_openbao_ca_certs_file_src | length > 0
+  else openbao_backup_openbao_ca_certs_path ~ '/ca.crt'
+  }}
+
+# Name to use as the SNI host when connecting via TLS
+openbao_backup_openbao_tls_server_name: '{{ inventory_hostname }}'
+# Disable verification of TLS certificates. Using this option is highly
+# discouraged as it decreases the security of data transmissions to and
+# from the OpenBao server
+openbao_backup_openbao_tls_skip_verify: false
+
+# OpenBao snapshot agent config file destination on remote host
+openbao_backup_agent_config_file: >-
+  {{ openbao_backup_agent_config_dir }}/openbao_backup_agent.hcl
+# OpenBao snapshot agent config file template
+openbao_backup_agent_config_file_template: >-
+  templates/openbao_backup_agent.hcl.j2
+
+# Systemd directory for OpenBao agent service on remote host
+openbao_backup_agent_systemd_dir: '/etc/systemd/system'
+openbao_backup_agent_systemd_service_template: 'templates/openbao-backup-agent.service.j2'
+# Systemd service name for snapshot agent
+openbao_backup_agent_systemd_service_name: 'openbao-backup-agent.service'
+
+# Raft snapshot systemd units for performing the actual snapshotting
+# Systemd directory for raft snapshot service and timer files on remote host
+openbao_backup_raft_snapshot_systemd_dir: '/etc/systemd/system'
+# Path to configuration directory
+openbao_backup_raft_snapshot_config_dir: '{{ openbao_backup_agent_config_dir }}'
+# Systemd timer template for snapshot service
+openbao_backup_raft_snapshot_systemd_timer_template: 'templates/openbao-raft-snapshot.timer.j2'
+# Systemd timer name
+openbao_backup_raft_snapshot_systemd_timer_name: 'openbao-raft-snapshot.timer'
+# Systemd timer service template for snapshot service
+openbao_backup_raft_snapshot_systemd_timer_service_template: 'templates/openbao-raft-snapshot.service.j2'
+# Systemd timer service name; this service performs the actual snapshotting
+openbao_backup_raft_snapshot_systemd_timer_service_name: 'openbao-raft-snapshot.service'
+# Systemd timer OnActiveSec, run 1s after activation
+openbao_backup_raft_snapshot_systemd_timer_onactivesec: '1s'
+# Systemd timer OnUnitActiveSec, run monotonic timer every hour after
+# activation
+openbao_backup_raft_snapshot_systemd_timer_onunitactivesec: '1h'
+
+# Snapshot script template
+openbao_backup_raft_snapshot_script_template: >-
+  templates/openbao-snapshot.sh.j2
+# Snapshot script path
+openbao_backup_raft_snapshot_script_path: "/usr/local/bin/openbao-snapshot.sh"
+
+# Owner/Group for configuration directory and files
+openbao_backup_user: bao
+openbao_backup_group: bao
+
+# Path to bao binary
+openbao_backup_bin_path: '/usr/bin'
+
+# Variables for actual AppRole roleid and secretid. These variables can be
+# defined manually or generated with the terraform configuration from this
+# repo.
+# Use Ansible OpenBao to encrypt the secretid.
+openbao_backup_agent_raft_snapshot_approle_role_id: ''
+openbao_backup_agent_raft_snapshot_approle_wrapped_secret_id_token: 'sensitive'
+openbao_backup_agent_raft_snapshot_approle_secret_id_response_wrapping_path: 'auth/approle/role/openbao-snapshot-agent/secret-id'
+
+# path to roleid and secretid files for AppRole auth
+openbao_backup_agent_raft_snapshot_approle_role_id_file: >-
+  {{ openbao_backup_agent_config_dir }}/openbao-raft-snapshot-approle-role-id
+openbao_backup_agent_raft_snapshot_approle_secret_id_file: >-
+  {{ openbao_backup_agent_config_dir }}/openbao-raft-snapshot-approle-secret-id
+
+# This can be set to false to disable the default behavior
+# of removing the secret ID file after it's been read:
+# https://openbao.org/docs/agent-and-proxy/autoauth/methods/approle
+openbao_backup_agent_raft_snapshot_remove_secret_id_file_after_reading: true
+
+# Snapshot output directory
+openbao_backup_raft_snapshot_dir: '/opt/bao/snapshots'
+# Snapshot file name format
+openbao_backup_raft_snapshot_file_name: >-
+  {{ inventory_hostname_short }}-openbao-raft-$(date +%F-%H%M).snapshot
+
+# Snapshot retention find time filter,
+# one of 'mtime' or 'atime', see `man find`
+openbao_backup_raft_snapshot_retention_find_mode: 'mtime'
+# Snapshot retention, data was last modified/accessed 7*24 hours ago
+openbao_backup_raft_snapshot_retention_time: '+7'
+# Action to take on expired files
+openbao_backup_raft_snapshot_retention_find_action: 'rm'
+
+openbao_backup_s3_sync: false
+openbao_backup_s3_config_dir: '{{ openbao_backup_agent_config_dir }}'
+openbao_backup_s3_ca_certs_path: '{{ openbao_backup_s3_config_dir }}'
+openbao_backup_s3_ca_certs_file_src: ''
+
+openbao_backup_s3_ca_certs_content: >-
+  {{ lookup('file', openbao_backup_s3_ca_certs_file_src)
+  if openbao_backup_s3_ca_certs_file_src | length > 0
+  else lookup('ansible.builtin.env', 'OPENBAO_BACKUP_S3_CA_CERT')
+  }}
+openbao_backup_s3_ca_certs_file: >-
+  {{ openbao_backup_s3_ca_certs_path ~ '/' ~
+  openbao_backup_s3_ca_certs_file_src | basename
+  if openbao_backup_s3_ca_certs_file_src | length > 0
+  else openbao_backup_s3_ca_certs_path ~ '/s3-ca.crt'
+  }}
+
+openbao_backup_s3_config_path: "{{ openbao_backup_s3_config_dir }}"
+openbao_backup_s3_access_key: >-
+  {{ lookup('ansible.builtin.env', 'OPENBAO_BACKUP_S3_ACCESS_KEY') }}
+
+openbao_backup_s3_expiry_days: 90
+
+openbao_backup_s3_host_base: >-
+  {{ lookup('ansible.builtin.env', 'OPENBAO_BACKUP_S3_HOST_BASE') }}
+openbao_backup_s3_host_bucket: >-
+  {{ lookup('ansible.builtin.env', 'OPENBAO_BACKUP_S3_HOST_BUCKET') }}
+openbao_backup_s3_secret_key: >-
+  {{ lookup('ansible.builtin.env', 'OPENBAO_BACKUP_S3_SECRET_KEY') }}

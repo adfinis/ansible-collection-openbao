@@ -1,0 +1,11 @@
+[Unit]
+Description=Timer for OpenBao integrated storage snapshot
+
+[Timer]
+Unit={{ openbao_backup_raft_snapshot_systemd_timer_service_name }}
+
+OnActiveSec={{ openbao_backup_raft_snapshot_systemd_timer_onactivesec }}
+OnUnitActiveSec={{ openbao_backup_raft_snapshot_systemd_timer_onunitactivesec }}
+
+[Install]
+WantedBy=timers.target

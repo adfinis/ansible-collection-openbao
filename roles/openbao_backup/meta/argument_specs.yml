@@ -1,0 +1,253 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# argument spec file for adfinis.openbao.openbao_backup
+
+argument_specs:
+  main:
+    short_description: >-
+      Configure scheduled OpenBao Raft snapshots and S3 backups.
+    description:
+      - Installs and configures an OpenBao agent using AppRole authentication.
+      - >-
+        Schedules Raft snapshots, optionally syncs them to S3-compatible
+        storage, and applies local retention.
+    options:
+      openbao_backup_agent_config_dir:
+        type: str
+        description: OpenBao agent configuration directory.
+        default: "/etc/openbao.d"
+      openbao_backup_agent_config_pid_file_name:
+        type: str
+        description: OpenBao agent PID file name.
+        default: "openbao-backup-agent.pid"
+      openbao_backup_agent_config_pid_dir:
+        type: str
+        description: Directory containing the OpenBao agent PID file.
+        default: "{{ openbao_backup_agent_config_dir }}"
+      openbao_backup_agent_config_run_dir:
+        type: str
+        description: systemd runtime directory for the OpenBao agent.
+        default: "openbao-backup-agent"
+      openbao_backup_agent_config_listener_socket:
+        type: str
+        description: OpenBao agent listener Unix socket path.
+        default: "{{ openbao_backup_agent_config_dir }}/agent.sock"
+      openbao_backup_openbao_api_address:
+        type: str
+        description: OpenBao API address.
+        default: "https://127.0.0.1:8200"
+      openbao_backup_openbao_ca_certs_path:
+        type: str
+        description: Managed-host directory containing OpenBao CA certificates.
+        default: ""
+      openbao_backup_openbao_ca_certs_file_src:
+        type: str
+        description: Controller-side source file for the OpenBao CA certificate.
+        default: ""
+      openbao_backup_openbao_ca_certs_content:
+        type: str
+        description: >-
+          PEM content for the OpenBao CA certificate, read from the source file
+          or OPENBAO_BACKUP_BAO_CACERT.
+        default: >-
+          {{ lookup('file', openbao_backup_openbao_ca_certs_file_src)
+          if openbao_backup_openbao_ca_certs_file_src | length > 0
+          else lookup('ansible.builtin.env', 'OPENBAO_BACKUP_BAO_CACERT') }}
+      openbao_backup_openbao_ca_certs_file:
+        type: str
+        description: Managed-host destination for the OpenBao CA certificate.
+        default: >-
+          {{ openbao_backup_openbao_ca_certs_path ~ '/' ~
+          openbao_backup_openbao_ca_certs_file_src | basename
+          if openbao_backup_openbao_ca_certs_file_src | length > 0
+          else openbao_backup_openbao_ca_certs_path ~ '/ca.crt' }}
+      openbao_backup_openbao_tls_server_name:
+        type: str
+        description: SNI name used for OpenBao TLS.
+        default: ""
+      openbao_backup_openbao_tls_skip_verify:
+        type: bool
+        description: Skip OpenBao TLS certificate verification.
+        default: false
+      openbao_backup_agent_config_file:
+        type: str
+        description: OpenBao agent configuration file destination.
+        default: "{{ openbao_backup_agent_config_dir }}/openbao_backup_agent.hcl"
+      openbao_backup_agent_config_file_template:
+        type: str
+        description: Template used to render the OpenBao agent configuration.
+        default: "templates/openbao_backup_agent.hcl.j2"
+      openbao_backup_agent_systemd_dir:
+        type: str
+        description: Destination directory for the OpenBao agent systemd unit.
+        default: "/etc/systemd/system"
+      openbao_backup_agent_systemd_service_template:
+        type: str
+        description: Template used to render the OpenBao agent systemd unit.
+        default: "templates/openbao-backup-agent.service.j2"
+      openbao_backup_agent_systemd_service_name:
+        type: str
+        description: OpenBao agent systemd service name.
+        default: "openbao-backup-agent.service"
+      openbao_backup_raft_snapshot_systemd_dir:
+        type: str
+        description: Destination directory for snapshot systemd units.
+        default: "/etc/systemd/system"
+      openbao_backup_raft_snapshot_config_dir:
+        type: str
+        description: Configuration directory used by the snapshot service.
+        default: "{{ openbao_backup_agent_config_dir }}"
+      openbao_backup_raft_snapshot_systemd_timer_template:
+        type: str
+        description: Template used to render the snapshot systemd timer.
+        default: "templates/openbao-raft-snapshot.timer.j2"
+      openbao_backup_raft_snapshot_systemd_timer_name:
+        type: str
+        description: Snapshot timer systemd unit name.
+        default: "openbao-raft-snapshot.timer"
+      openbao_backup_raft_snapshot_systemd_timer_service_template:
+        type: str
+        description: Template used to render the snapshot systemd service.
+        default: "templates/openbao-raft-snapshot.service.j2"
+      openbao_backup_raft_snapshot_systemd_timer_service_name:
+        type: str
+        description: One-shot snapshot systemd service name.
+        default: "openbao-raft-snapshot.service"
+      openbao_backup_raft_snapshot_systemd_timer_onactivesec:
+        type: str
+        description: Delay before the first snapshot after timer activation.
+        default: "1s"
+      openbao_backup_raft_snapshot_systemd_timer_onunitactivesec:
+        type: str
+        description: Interval between scheduled snapshots.
+        default: "1h"
+      openbao_backup_raft_snapshot_script_template:
+        type: str
+        description: Template used to render the snapshot script.
+        default: "templates/openbao-snapshot.sh.j2"
+      openbao_backup_raft_snapshot_script_path:
+        type: str
+        description: Destination path for the snapshot script.
+        default: "/usr/local/bin/openbao-snapshot.sh"
+      openbao_backup_user:
+        type: str
+        description: System user for the snapshot agent.
+        default: "bao"
+      openbao_backup_group:
+        type: str
+        description: System group for the snapshot agent.
+        default: "bao"
+      openbao_backup_bin_path:
+        type: str
+        description: Directory containing the OpenBao CLI executable.
+        default: "/usr/bin"
+      openbao_backup_agent_raft_snapshot_approle_role_id:
+        type: str
+        description: AppRole role ID used by the snapshot agent.
+        default: ""
+      openbao_backup_agent_raft_snapshot_approle_secret_id:
+        type: str
+        description: AppRole secret ID used by the snapshot agent.
+        default: "sensitive"
+      openbao_backup_agent_raft_snapshot_approle_role_id_file:
+        type: str
+        description: Destination file for the AppRole role ID.
+        default: >-
+          {{ openbao_backup_agent_config_dir }}/openbao-raft-snapshot-approle-role-id
+      openbao_backup_agent_raft_snapshot_approle_secret_id_file:
+        type: str
+        description: Destination file for the AppRole secret ID.
+        default: >-
+          {{ openbao_backup_agent_config_dir }}/openbao-raft-snapshot-approle-secret-id
+      openbao_backup_agent_raft_snapshot_remove_secret_id_file_after_reading:
+        type: bool
+        description: Remove the AppRole secret ID file after it is read.
+        default: true
+      openbao_backup_agent_raft_snapshot_approle_secret_id_response_wrapping_path:
+        type: str
+        description: Path to approle role for unwrapping secret id.
+        default: 'auth/approle/role/openbao-snapshot-agent/secret-id'
+      openbao_backup_raft_snapshot_dir:
+        type: str
+        description: Local directory for snapshot files.
+        default: "/opt/bao/snapshots"
+      openbao_backup_raft_snapshot_file_name:
+        type: str
+        description: Snapshot filename format.
+        default: >-
+          {{ inventory_hostname_short }}-openbao-raft-$(date +%F-%H%M).snapshot
+      openbao_backup_raft_snapshot_retention_find_mode:
+        type: str
+        description: File age to check for retention, either mtime or atime.
+        default: "mtime"
+      openbao_backup_raft_snapshot_retention_time:
+        type: str
+        description: Find age expression for snapshots to remove.
+        default: "+7"
+      openbao_backup_raft_snapshot_retention_find_action:
+        type: str
+        description: Find action for expired snapshots.
+        default: "rm"
+      openbao_backup_s3_sync:
+        type: bool
+        description: Sync snapshots to S3-compatible storage.
+        default: false
+      openbao_backup_s3_config_dir:
+        type: str
+        description: Directory containing S3 client configuration.
+        default: "{{ openbao_backup_agent_config_dir }}"
+      openbao_backup_s3_ca_certs_path:
+        type: str
+        description: Managed-host directory containing S3 CA certificates.
+        default: "{{ openbao_backup_s3_config_dir }}"
+      openbao_backup_s3_ca_certs_file_src:
+        type: str
+        description: Controller-side source file for the S3 CA certificate.
+        default: ""
+      openbao_backup_s3_ca_certs_content:
+        type: str
+        description: >-
+          PEM content for the S3 CA certificate, read from the source file or
+          OPENBAO_BACKUP_S3_CA_CERT.
+        default: >-
+          {{ lookup('file', openbao_backup_s3_ca_certs_file_src)
+          if openbao_backup_s3_ca_certs_file_src | length > 0
+          else lookup('ansible.builtin.env', 'OPENBAO_BACKUP_S3_CA_CERT') }}
+      openbao_backup_s3_ca_certs_file:
+        type: str
+        description: Managed-host destination for the S3 CA certificate.
+        default: >-
+          {{ openbao_backup_s3_ca_certs_path ~ '/' ~
+          openbao_backup_s3_ca_certs_file_src | basename
+          if openbao_backup_s3_ca_certs_file_src | length > 0
+          else openbao_backup_s3_ca_certs_path ~ '/s3-ca.crt' }}
+      openbao_backup_s3_config_path:
+        type: str
+        description: Path to the s3cmd configuration file.
+        default: "{{ openbao_backup_s3_config_dir }}"
+      openbao_backup_s3_access_key:
+        type: str
+        description: >-
+          S3 access key, read from OPENBAO_BACKUP_S3_ACCESS_KEY by default.
+        default: "{{ lookup('ansible.builtin.env', 'OPENBAO_BACKUP_S3_ACCESS_KEY') }}"
+      openbao_backup_s3_expiry_days:
+        type: int
+        description: S3 object expiry period in days.
+        default: 90
+      openbao_backup_s3_host_base:
+        type: str
+        description: >-
+          S3-compatible endpoint hostname, read from OPENBAO_BACKUP_S3_HOST_BASE
+          by default.
+        default: "{{ lookup('ansible.builtin.env', 'OPENBAO_BACKUP_S3_HOST_BASE') }}"
+      openbao_backup_s3_host_bucket:
+        type: str
+        description: >-
+          S3 bucket name for snapshot uploads, read from
+          OPENBAO_BACKUP_S3_HOST_BUCKET by default.
+        default: "{{ lookup('ansible.builtin.env', 'OPENBAO_BACKUP_S3_HOST_BUCKET') }}"
+      openbao_backup_s3_secret_key:
+        type: str
+        description: >-
+          S3 secret key, read from OPENBAO_BACKUP_S3_SECRET_KEY by default.
+        default: "{{ lookup('ansible.builtin.env', 'OPENBAO_BACKUP_S3_SECRET_KEY') }}"
