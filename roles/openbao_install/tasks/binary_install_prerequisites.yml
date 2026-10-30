@@ -23,14 +23,17 @@
     state: present
     update_cache: true
 
-- name: Ensure OpenBao directory structure
+- name: Check if OpenBao binary directory exists
+  ansible.builtin.stat:
+    path: "{{ openbao_install_binary_config_path }}"
+  register: openbao_install_binary_config_path_dir_stat
+
+- name: Create OpenBao configuration directory
+  when: not openbao_install_binary_config_path_dir_stat.stat.exists
+  become: true
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ openbao_install_binary_config_path }}"
     state: directory
     owner: "{{ openbao_install_user_name }}"
     group: "{{ openbao_install_user_group_name }}"
     mode: "0750"
-  loop:
-    - "{{ openbao_install_binary_destination_path }}"
-    - "{{ openbao_install_binary_systemd_path }}"
-    - "{{ openbao_install_binary_config_path }}"

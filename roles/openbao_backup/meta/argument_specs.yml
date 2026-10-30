@@ -15,7 +15,7 @@ argument_specs:
       openbao_backup_agent_config_dir:
         type: str
         description: OpenBao agent configuration directory.
-        default: "/etc/openbao"
+        default: "/etc/openbao.d"
       openbao_backup_agent_config_pid_file_name:
         type: str
         description: OpenBao agent PID file name.
@@ -163,6 +163,10 @@ argument_specs:
         type: bool
         description: Remove the AppRole secret ID file after it is read.
         default: true
+      openbao_backup_agent_raft_snapshot_approle_secret_id_response_wrapping_path:
+        type: str
+        description: Path to approle role for unwrapping secret id.
+        default: 'auth/approle/role/openbao-snapshot-agent/secret-id'
       openbao_backup_raft_snapshot_dir:
         type: str
         description: Local directory for snapshot files.

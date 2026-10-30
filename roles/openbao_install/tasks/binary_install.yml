@@ -35,12 +35,18 @@
   ansible.builtin.set_fact:
     openbao_install_needs_install: >-
       {{ (not openbao_install_task_result_stat.stat.exists) or (openbao_install_installed_version != openbao_install_openbao_version) }}
-- name: Create OpenBao directory
-  when: openbao_install_needs_install
+- name: Check if OpenBao binary directory exists
+  ansible.builtin.stat:
+    path: "{{ openbao_install_binary_systemd_path }}"
+  register: openbao_install_binary_destination_path_dir_stat
+- name: Create OpenBao binary directory
+  when:
+    - openbao_install_needs_install
+    - not openbao_install_binary_destination_path_dir_stat.stat.exists
   ansible.builtin.file:
     path: "{{ openbao_install_binary_destination_path }}"
     state: directory
-    mode: "0750"
+    mode: "0755"
     owner: "{{ openbao_install_user_name }}"
     group: "{{ openbao_install_user_group_name }}"
 
@@ -136,7 +142,12 @@
   become: true
   become_user: "{{ openbao_install_user_name }}"
   block:
+    - name: Check if systemd directory exists
+      ansible.builtin.stat:
+        path: "{{ openbao_install_binary_systemd_path }}"
+      register: openbao_install_binary_system_path_dir_stat
     - name: Create systemd directory for OpenBao
+      when: not openbao_install_binary_system_path_dir_stat.stat.exists
       ansible.builtin.file:
         path: "{{ openbao_install_binary_systemd_path }}"
         state: directory
