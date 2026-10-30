@@ -59,7 +59,7 @@ argument_specs:
       openbao_service_configuration_config_template_file_path:
         type: str
         description: Path to the HCL config template file.
-        default: "openbao.hcl.j2"
+        default: "templates/openbao.hcl.j2"
 
       openbao_service_configuration_environment_template_content:
         type: str
@@ -74,7 +74,7 @@ argument_specs:
       openbao_service_configuration_environment_template_file_path:
         type: str
         description: Path to the environment template file.
-        default: "openbao.env.j2"
+        default: "templates/openbao.env.j2"
 
       # TLS Configuration
       openbao_service_configuration_tls_path:
