@@ -25,7 +25,7 @@ listener "unix" {
   # Expose OpenBao Agent API seperately
   # https://openbao.org/docs/agent-and-proxy/agent/caching/#configuration-listener
   address = "{{ openbao_backup_agent_config_listener_socket }}"
-  # tls_disable = true
+  tls_disable = true
 }
 
 auto_auth {
@@ -37,6 +37,7 @@ auto_auth {
     config = {
       role_id_file_path = "{{ openbao_backup_agent_raft_snapshot_approle_role_id_file }}"
       secret_id_file_path = "{{ openbao_backup_agent_raft_snapshot_approle_secret_id_file }}"
+      secret_id_response_wrapping_path = "{{ openbao_backup_agent_raft_snapshot_approle_secret_id_response_wrapping_path }}"
       remove_secret_id_file_after_reading = {{ openbao_backup_agent_raft_snapshot_remove_secret_id_file_after_reading | bool | lower }}
     }
   }

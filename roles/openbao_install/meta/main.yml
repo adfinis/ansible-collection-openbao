@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 galaxy_info:
   author: Simon Nussbaum
-  description: Role for installing OpenBao clusters on servers
+  description: Role for installing OpenBao
   company: Adfinis AG
 
   license: AGPL-3.0-or-later

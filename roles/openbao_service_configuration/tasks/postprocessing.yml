@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+---
+# tasks file for OpenBao post-installation changes
+# -----------------------------------------------------------------------
+# Detects installed firewall tooling and opens the required API and
+# cluster ports to allow the service to accept inbound traffic.
+
+- name: Allow OpenBao connections with iptables if firewalld is not installed
+  when:
+    - "'firewalld' not in ansible_facts.packages"
+    - "'iptables' in ansible_facts.packages"
+  become: true
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_ports:
+      - "{{ openbao_service_configuration_api_port }}"
+      - "{{ openbao_service_configuration_cluster_port }}"
+    jump: ACCEPT
+
+- name: Allow OpenBao connections with firewalld
+  when: "'firewalld' in ansible_facts.packages"
+  become: true
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop:
+    - "{{ openbao_service_configuration_api_port }}/tcp"
+    - "{{ openbao_service_configuration_cluster_port }}/tcp"
+
+- name: Ensure OpenBao service is enabled
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ openbao_service_configuration_data_systemd_unit_name }}"
+    enabled: "{{ not openbao_service_configuration_systemd_unit_disabled }}"
+    daemon_reload: true
+
+- name: Start OpenBao service
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ openbao_service_configuration_data_systemd_unit_name }}"
+    state: started
+  notify: restart_cluster
+
+- name: Check node status
+  ansible.builtin.uri:
+    url: >-
+      https://{{ inventory_hostname ~ ':' ~ openbao_service_configuration_api_port }}/v1/sys/health
+    validate_certs: false
+    method: GET
+    # 200 if initialized, unsealed, and active
+    # 429 if unsealed and standby
+    # 501 if not initialized
+    # 503 if sealed
+    status_code:
+      - 200
+      - 429
+      - 501
+      - 503
+      - -1
+  register: openbao_service_configuration_task_result_initialized
+  changed_when:
+    - openbao_service_configuration_task_result_initialized.json is defined
+    - >
+      (
+        'openbao' in ansible_facts.packages
+        and openbao_service_configuration_task_result_initialized.json.version
+        != ansible_facts.packages['openbao'].version
+      )
+      or
+      (
+        openbao_service_configuration_installed_version is defined
+        and openbao_service_configuration_task_result_initialized.json.version
+        != openbao_service_configuration_installed_version
+      )
+  notify: restart_cluster

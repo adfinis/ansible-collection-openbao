@@ -16,11 +16,11 @@
 
 - name: Create OpenBao user if it does not exist and user creation is enabled
   when:
-    - openbao_user_creation
-    - openbao_user_name not in ansible_facts.getent_passwd
+    - openbao_install_user_creation
+    - openbao_install_user_name not in ansible_facts.getent_passwd
   become: true
   ansible.builtin.user:
     comment: "Local user for OpenBao"
-    name: "{{ openbao_user_name }}"
-    home: "{{ openbao_user_home }}"
-    create_home: "{{ openbao_user_home_creation }}"
+    name: "{{ openbao_install_user_name }}"
+    home: "{{ openbao_install_user_home }}"
+    create_home: "{{ openbao_install_user_home_creation }}"

@@ -1,7 +1,7 @@
 ---
 
 # OpenBao configuration directory
-openbao_backup_agent_config_dir: '/etc/openbao'
+openbao_backup_agent_config_dir: '/etc/openbao.d'
 # OpenBao for pid file
 openbao_backup_agent_config_pid_file_name: 'openbao-backup-agent.pid'
 # Location of pid file
@@ -89,7 +89,8 @@ openbao_backup_bin_path: '/usr/bin'
 # repo.
 # Use Ansible OpenBao to encrypt the secretid.
 openbao_backup_agent_raft_snapshot_approle_role_id: ''
-openbao_backup_agent_raft_snapshot_approle_secret_id: 'sensitive'
+openbao_backup_agent_raft_snapshot_approle_wrapped_secret_id_token: 'sensitive'
+openbao_backup_agent_raft_snapshot_approle_secret_id_response_wrapping_path: 'auth/approle/role/openbao-snapshot-agent/secret-id'
 
 # path to roleid and secretid files for AppRole auth
 openbao_backup_agent_raft_snapshot_approle_role_id_file: >-
