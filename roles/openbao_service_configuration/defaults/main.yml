@@ -161,3 +161,20 @@ openbao_service_configuration_seal_aead: {}
 #  namespace: ""
 #  disabled: false
 #  lease_path: ""
+
+openbao_service_configuration_plugin_download_behavior: "fail"
+openbao_service_configuration_plugin_auto_download: "true"
+openbao_service_configuration_plugin_auto_register: "true"
+openbao_service_configuration_plugin_path: "{{ openbao_service_configuration_data_path }}/plugins"
+
+# See https://openbao.org/docs/configuration/plugins/
+openbao_service_configuration_plugins: []
+# - name:
+#   type:
+#   image:
+#   command:
+#   version:
+#   args: []
+#   env: []
+#   sha256sum:
+#   binary_name:

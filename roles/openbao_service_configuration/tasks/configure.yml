@@ -60,6 +60,7 @@
         - "{{ openbao_service_configuration_data_audit_path }}"
         - "{{ openbao_service_configuration_data_log_path }}"
         - "{{ openbao_service_configuration_tls_path }}"
+        - "{{ openbao_service_configuration_plugin_path }}"
 
     - name: Deploy TLS Certificate (Public Key)
       when: openbao_service_configuration_tls_cert_content | length > 0

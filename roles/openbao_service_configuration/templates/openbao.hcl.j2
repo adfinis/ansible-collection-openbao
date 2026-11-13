@@ -72,3 +72,18 @@ seal "{{ seal_type }}" {
 {% endif %}
 {% endif %}
 {% endfor %}
+
+{% if openbao_service_configuration_plugins | lenght > 0 %}
+plugin_download_behavior = "{{ openbao_service_configuration_plugin_download_behavior }}"
+plugin_auto_download = "{{ openbao_service_configuration_plugin_auto_download }}"
+plugin_auto_register = "{{ openbao_service_configuration_plugin_auto_register }}"
+plugin_directory = "{{ openbao_service_configuration_plugin_path }}"
+{% endif %}}
+
+{% for plugin in openbao_service_configuration_plugins | default([]) %}
+plugin "{{ plugin.type }}" "{{ plugin.name }}" {
+{% for key, value in plugin.items() if key not in ['name', 'type'] %}
+  {{ key }} = {{ value | to_json }}
+{% endfor %}
+}
+{% endfor %}
