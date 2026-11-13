@@ -76,9 +76,9 @@ The following instructions show how to setup a testlab installation on VMs or on
 
         testlab:
           hosts:
-            host1.test.lab
-            host2.test.lab
-            host3.test.lab
+            host1.test.lab:
+            host2.test.lab:
+            host3.test.lab:
 
 2. Create a playbook file `playbook.yml` similar
 
@@ -102,7 +102,7 @@ The following instructions show how to setup a testlab installation on VMs or on
         -newkey rsa:4096 \
         -out CA.crt \
         -keyout CA.key \
-        -subj "/O=OpenBao/CN=Root CA"
+        -subj "/O=OpenBao/CN=Root CA" \
         -days 1095 # valid 3 years
 
 4. Generate server key and issue certificate signed by the Root CA
